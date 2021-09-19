@@ -4,12 +4,13 @@ import net.auoeke.cin.type.*
 import net.auoeke.extensions.listIterator
 
 @Suppress("ControlFlowWithEmptyBody")
-class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
-    private inline val nextIndex get() = iterator.nextIndex()
-    private inline val previousIndex get() = iterator.previousIndex()
-
+class Cin(private val cin: String) : Iterator<Char> {
+    private val iterator: ListIterator<Char> = cin.listIterator()
     private var line: Int = 1
     private var column: Int = 0
+
+    private inline val nextIndex get() = iterator.nextIndex()
+    private inline val previousIndex get() = iterator.previousIndex()
 
     private inline val Char.isDelimiter: Boolean get() = this == '\'' || this == '"' || this == '`'
     private inline val Char.isNumber: Boolean get() = this >= 49.toChar() && this <= 57.toChar()
@@ -37,14 +38,20 @@ class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
         column--
     }
 
-    private fun parseElement(cin: String): Element? {
+    private fun parseElement(): Element? {
         for (char in this) {
-            if (char.isWhitespace() || comment(cin, char)) {
+            if (char == ']' || char == '}') {
+                undo()
+
+                break
+            }
+
+            if (char.isWhitespace() || comment(char)) {
                 continue
             }
 
             if (char.isNumber) {
-                return when (val number = number(cin)) {
+                return when (val number = number()) {
                     null -> {
                         val start = previousIndex
 
@@ -70,13 +77,13 @@ class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
                 cin.startsWith("null", start) -> return NullElement.also {next(3)}
             }
 
-            string(cin, char)?.let {return it}
+            string(char)?.let {return it}
 
             if (char == '[') {
                 val array = ArrayElement()
 
                 while (cin[nextIndex] != ']') {
-                    parseElement(cin)?.let(array::add)
+                    parseElement()?.let(array::add)
                 }
 
                 return array
@@ -94,7 +101,11 @@ class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
         return null
     }
 
-    private fun comment(cin: String, char: Char): Boolean {
+    private fun parsePair() {
+
+    }
+
+    private fun comment(char: Char): Boolean {
         val start = nextIndex
 
         if (char == '/') {
@@ -116,7 +127,7 @@ class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
         return false
     }
 
-    private fun number(cin: String): NumberElement? {
+    private fun number(): NumberElement? {
         val start = previousIndex
         var float = false
 
@@ -139,11 +150,11 @@ class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
         return null
     }
 
-    private fun string(cin: String, delimiter: Char): StringElement? {
+    private fun string(delimiter: Char): StringElement? {
         val start = previousIndex
 
         if (delimiter.isDelimiter) {
-            val length = delimiterLength(cin, start, delimiter)
+            val length = delimiterLength(start, delimiter)
             var foundLength = 0
 
             for (char in this) {
@@ -160,7 +171,7 @@ class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
         return null
     }
 
-    private fun delimiterLength(cin: String, index: Int, delimiter: Char): Int {
+    private fun delimiterLength(index: Int, delimiter: Char): Int {
         var length = 1
 
         while (cin[index + length] == delimiter) {
@@ -172,6 +183,6 @@ class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
     }
 
     companion object {
-        fun parse(cin: String): Element? = Cin(cin.listIterator()).parseElement(cin)
+        fun parse(cin: String): Element? = Cin(cin).parseElement()
     }
 }
