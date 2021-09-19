@@ -1,0 +1,43 @@
+/// syntax (pseudoregex)
+delimiter: (?<!\\)['"`]({1}|{3,})
+separator: ,|\n
+element: $null|$boolean|$integer|$float|$string|$array|$map
+pair: \w+[:=]$element|\w+($map|$array)
+
+// evaluated in this order
+null: null
+boolean: true|false
+integer: \d+
+float: \d+\.\d+
+array: [$element?(${separator}element)*]
+map: {$pair?(${separator}$pair)*}
+string: (?s)$delimiter.*$delimiter|\w.*\w
+
+file: $element|$pair(${separator}$pair)*
+///
+
+// an example
+buildscript {
+    name = cin
+    version = 0.0.0
+    description = '
+        As shown below, "cin" is an acronym.
+        c: concise
+        i: information
+        n: notation
+
+        cin is intended to be a human-readable, human-writable and concise
+        alternative to popular serialization formats like JSON.
+    '
+
+    repositories [
+        mavenCentral
+        "~/.m2/repository" // or mavenLocal
+        "https://maven.auoeke.net"
+    ]
+
+    dependencies [
+        gradleApi
+        org.ow2.asm:asm:9.0-SNAPSHOT
+    ]
+}

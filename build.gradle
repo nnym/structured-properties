@@ -7,6 +7,8 @@ plugins {
 group = "auoeke"
 version = "0.0.0"
 
+targetCompatibility = 16
+
 sourceSets {
     main {
         java.srcDir("src")
@@ -14,7 +16,15 @@ sourceSets {
 
     test {
         java.srcDir("test")
+        resources {
+            srcDir("test")
+            include("*.cin")
+        }
     }
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = targetCompatibility
 }
 
 repositories {
@@ -24,7 +34,6 @@ repositories {
 }
 
 dependencies {
-    api("net.auoeke:extensions:latest.release")
     api("net.auoeke:extensions:latest.release")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
