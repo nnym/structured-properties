@@ -122,7 +122,7 @@ class Cin(private val iterator: ListIterator<Char>) : Iterator<Char> {
 
         for (char in this) {
             if (char == '.' && !float) {
-                require(next().isNumber) {"Expected a number after the decimal point at ${line}:${column} but found '${cin[nextIndex]}'."}
+                require(next().isNumber) {"Expected a number after the decimal point at ${line}:${column} but found '${cin[previousIndex]}'."}
 
                 float = true
             } else if (!char.isNumber) {
