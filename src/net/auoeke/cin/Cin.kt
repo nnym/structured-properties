@@ -39,10 +39,6 @@ class Cin(private val cin: String) : Iterator<Char> {
         repeat(count) {next()}
     }
 
-    private inline fun next(condition: (Char) -> Boolean) {
-        while (condition(next())) {}
-    }
-
     private fun undo() {
         if (iterator.previous() == '\n') {
             line--
@@ -65,7 +61,7 @@ class Cin(private val cin: String) : Iterator<Char> {
 
     private fun parseElement(): Element? {
         for (char in this) {
-            if (char.isWhitespace() || comment(char)) {
+            if (char.isWhitespace() || comment(char) > 0 ) {
                 continue
             }
 
@@ -109,7 +105,7 @@ class Cin(private val cin: String) : Iterator<Char> {
                         }
                     }
 
-                    if (!next.isWhitespace() && !comment(next)) {
+                    if (!next.isWhitespace() && comment(next) == 0) {
                         throwException("Expected at least one of ,\\n]} before $next.")
                     }
                 }
@@ -121,7 +117,7 @@ class Cin(private val cin: String) : Iterator<Char> {
 
     private fun parsePair(map: MapElement) {
         for (char in this) {
-            if (char.isWhitespace() || comment(char)) {
+            if (char.isWhitespace() || comment(char) > 0) {
                 continue
             }
 
@@ -138,50 +134,38 @@ class Cin(private val cin: String) : Iterator<Char> {
         this.context = previousContext
     }
 
-    private fun comment(char: Char): Boolean {
+    private fun comment(char: Char): Int {
         val start = nextIndex
+        var length = 0
 
         if (char == '/') {
             if (cin[start] == '/') {
                 next()
 
                 if (cin[start + 1] == '/') {
+                    length = 3
+                    var count = 0
+
                     next()
-                    next {it != '/' || next() != '/' || next() != '/'}
+
+                    for (next in this) {
+                        length++
+
+                        if (next == '/' && ++count == 3) {
+                            break
+                        }
+                    }
                 } else {
-                    next {it != '\n'}
-                }
+                    length = 2
 
-                return true
-            }
-        }
-
-        return false
-    }
-
-    private fun number(): NumberElement? {
-        val start = previousIndex
-        var float = false
-
-        for (char in this) {
-            if (char == '.' && !float) {
-                if (!next().isDigit()) {
-                    throwException("Expected a number after the decimal point at %s but found '${cin[previousIndex]}'.")
-                }
-
-                float = true
-            } else if (!char.isDigit()) {
-                undo()
-                val number = cin.substring(start, nextIndex)
-
-                return when {
-                    float -> FloatElement(number.toDouble())
-                    else -> IntegerElement(number.toLong())
+                    while (next() != '\n') {
+                        length++
+                    }
                 }
             }
         }
 
-        return null
+        return length
     }
 
     private fun string(delimiter: Char): Element {
@@ -210,15 +194,31 @@ class Cin(private val cin: String) : Iterator<Char> {
             throwException(position, "The string at %s is not closed.")
         }
 
-        for (next in this) {
+        val comments = ArrayList<Int>()
+
+        for ((index, next) in this.withIndex()) {
             if (next in "\n,]}") {
                 undo()
-
                 break
+            }
+
+            comment(next).also {
+                if (it > 0) {
+                    undo()
+
+                    comments.add(index)
+                    comments.add(index + it + 1)
+                }
             }
         }
 
-        return when (val string = cin.substring(start, nextIndex).trim()) {
+        var string = cin.substring(start, nextIndex)
+
+        for (index in comments.indices.reversed() step 2) {
+            string = string.replaceRange(comments[index - 1], comments[index], "")
+        }
+
+        return when (string.trim()) {
             "false" -> BooleanElement(false)
             "true" -> BooleanElement(true)
             "null" -> NullElement

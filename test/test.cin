@@ -8,7 +8,8 @@ d
 // single-line comment
 [
     1,
-    2.5,
+    2.5 /// sample text ///
+    9. // 9.0
     "gazillion",
     true,
     false,
