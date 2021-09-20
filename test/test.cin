@@ -10,8 +10,13 @@ d
     1,
     2.5 /// sample text ///
     9. // 9.0
-    "gazillion",
+    gazillion,
     true,
-    false,
+    false
+    '
+    public static void main(String... args) {
+        System.out.println("test.cin")
+    }
+    '
     null,
 ]
