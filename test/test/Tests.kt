@@ -1,16 +1,17 @@
 package test
 
 import net.auoeke.cin.Cin
+import net.auoeke.cin.element.Element
 import org.junit.jupiter.api.Test
 import org.junit.platform.commons.annotation.Testable
 
-@Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
+@Suppress("RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS", "SameParameterValue")
 @Testable
 class Tests {
     @Test
     fun test() {
-        println(Cin.parse(read("test.cin")))
+        println(parse("test.cin"))
     }
 
-    private fun read(file: String): String = javaClass.getResource("/$file").readText()
+    private fun parse(file: String): Element? = Cin.parseResource(file)
 }

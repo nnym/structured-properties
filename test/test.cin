@@ -1,8 +1,16 @@
+/// multiline comment
+a
+b
+c
+d
+///
+
+// single-line comment
 [
     1,
     2.5,
     "gazillion",
     true,
     false,
-    null
+    null,
 ]

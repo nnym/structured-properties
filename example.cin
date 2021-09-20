@@ -5,39 +5,45 @@ element: $null|$boolean|$integer|$float|$string|$array|$map
 pair: \w+[:=]$element|\w+($map|$array)
 
 // evaluated in this order
-null: null
-boolean: true|false
 integer: \d+
 float: \d+\.\d+
+boolean: false|true
+null: null
+string: (?s)$delimiter.*$delimiter
 array: [$element?(${separator}element)*]
 map: {$pair?(${separator}$pair)*}
-string: (?s)$delimiter.*$delimiter|\w.*\w
+string|: \w(.*\w)?
 
-file: $element|$pair(${separator}$pair)*
+file: $element(${separator}$element)*|$pair(${separator}$pair)*
 ///
 
 // an example
+
 buildscript {
-    name = cin
-    version = 0.0.0
-    description = '
-        As shown below, "cin" is an acronym.
-        c: concise
-        i: information
-        n: notation
+    dependencies {
+        classpath = [net.example:old-gradle-plugin:1.2.3]
+    }
+}
 
-        cin is intended to be a human-readable, human-writable and concise
-        alternative to popular serialization formats like JSON.
-    '
+name = cin
+version = 0.0.0
+description = '
+    "cin" is an acronym as shown below.
+    c: concise
+    i: information
+    n: notation
 
-    repositories [
-        mavenCentral
-        "~/.m2/repository" // or mavenLocal
-        "https://maven.auoeke.net"
-    ]
+    cin is intended to be a human-readable, human-writable and concise
+    alternative to popular serialization formats like JSON.
+'
 
-    dependencies [
-        gradleApi
-        org.ow2.asm:asm:9.0-SNAPSHOT
-    ]
+repositories [
+    mavenCentral
+    "~/.m2/repository" // or mavenLocal
+    https://maven.auoeke.net
+]
+
+dependencies {
+    implementation = [gradleApi, org.ow2.asm:asm:9.0-SNAPSHOT]
+    testImplementation = org.junit.jupiter:junit-jupiter:5.8.0
 }
