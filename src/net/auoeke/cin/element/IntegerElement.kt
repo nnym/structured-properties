@@ -3,6 +3,9 @@ package net.auoeke.cin.element
 class IntegerElement(var value: Long) : NumberElement() {
     override val type: ElementType get() = ElementType.INTEGER
 
+    override fun equals(other: Any?): Boolean = other is IntegerElement && other.value == value
+    override fun hashCode(): Int = value.hashCode()
+
     override fun toByte(): Byte = value.toByte()
     override fun toChar(): Char = value.toInt().toChar()
     override fun toDouble(): Double = value.toDouble()

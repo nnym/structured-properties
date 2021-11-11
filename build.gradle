@@ -2,12 +2,13 @@ plugins {
     id("java")
     id("maven-publish")
     id("org.jetbrains.kotlin.jvm").version("latest.release")
+    id("net.auoeke.extensions").version("latest.release")
 }
 
 group = "auoeke"
 version = "0.0.0"
 
-targetCompatibility = 16
+targetCompatibility = 17
 
 sourceSets {
     main {
@@ -16,14 +17,14 @@ sourceSets {
 
     test {
         java.srcDir("test")
+
         resources {
-            srcDir("test")
-            include("*.cin")
+            srcDir("test/cin")
         }
     }
 }
 
-compileKotlin {
+tasks.withType(compileKotlin.class) {
     kotlinOptions.jvmTarget = targetCompatibility
 }
 
@@ -34,8 +35,6 @@ repositories {
 }
 
 dependencies {
-    api("net.auoeke:extensions:latest.release")
-
     testImplementation("org.junit.jupiter:junit-jupiter-api:latest.release")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }

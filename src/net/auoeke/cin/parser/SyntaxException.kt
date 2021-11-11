@@ -1,4 +1,4 @@
-package net.auoeke.cin
+package net.auoeke.cin.parser
 
 import net.auoeke.extensions.letIf
 

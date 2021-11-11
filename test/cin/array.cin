@@ -1,11 +1,11 @@
-/// multiline comment
+/// block comment
 a
 b
 c
 d
 ///
 
-// single-line comment
+// line comment
 [
     1,
     2.5 /// sample text ///
@@ -13,10 +13,10 @@ d
     gazillion,
     true,
     false
-    '
+    """
     public static void main(String... args) {
         System.out.println("test.cin")
     }
-    '
+    """
     null,
 ]
