@@ -1,8 +1,8 @@
 package net.auoeke.cin
 
 import net.auoeke.cin.element.*
-import net.auoeke.cin.parser.*
-import net.auoeke.cin.parser.token.Token
+import net.auoeke.cin.lexer.*
+import net.auoeke.cin.lexer.lexeme.Lexeme
 import net.auoeke.extensions.*
 import java.net.URI
 import java.net.URL
@@ -13,7 +13,7 @@ import kotlin.io.path.readText
 import kotlin.io.path.toPath
 
 @Suppress("ControlFlowWithEmptyBody")
-class Cin(cin: String) : Iterator<Token> {
+class Cin(cin: String) : Iterator<Lexeme> {
     private val iterator = Lexer(cin, false).iterator()
     private var context: Context = Context.FILE
 
@@ -24,7 +24,7 @@ class Cin(cin: String) : Iterator<Token> {
 
     override operator fun hasNext(): Boolean = iterator.hasNext()
 
-    override operator fun next(): Token = iterator.next()
+    override operator fun next(): Lexeme = iterator.next()
 
     private fun parseElement(): Element? = null.also {
     }

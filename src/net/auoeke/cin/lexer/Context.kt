@@ -1,6 +1,4 @@
-package net.auoeke.cin.parser
-
-import kotlin.contracts.contract
+package net.auoeke.cin.lexer
 
 enum class Context {
     FILE,

@@ -1,29 +1,27 @@
-package net.auoeke.cin.parser
+package net.auoeke.cin.lexer
 
-import net.auoeke.cin.parser.token.*
-import net.auoeke.cin.parser.token.type.MappingOperator
-import net.auoeke.cin.parser.token.type.CommentType
-import net.auoeke.cin.parser.token.type.TokenType
+import net.auoeke.cin.lexer.lexeme.*
+import net.auoeke.cin.lexer.lexeme.Lexeme.Type
 import net.auoeke.extensions.listIterator
 import net.auoeke.extensions.repeat
 import net.auoeke.extensions.string
 import kotlin.collections.ArrayList
 
 @Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
-class Lexer(private val cin: String, retainSource: Boolean = false, private val jsonCompatible: Boolean = false, private val throwErrors: Boolean = true) : Iterable<Token> {
+class Lexer(private val cin: String, retainSource: Boolean = false, private val jsonCompatible: Boolean = false, private val throwErrors: Boolean = true) : Iterable<Lexeme> {
     private val iterator: ListIterator<Char> = cin.listIterator()
-    private val tokens = ArrayList<Token>()
+    private val lexemes = ArrayList<Lexeme>()
 
     private var line = 1
     private var column = 0
     private var context: Context? = null
-    private var elementToken: Token? = null
+    private var elementLexeme: Lexeme? = null
 
     private inline val position get() = "$line:$column"
     private inline val previousIndex: Int get() = iterator.previousIndex()
     private inline val nextIndex: Int get() = iterator.nextIndex()
 
-    private val acceptsColon get() = jsonCompatible && elementToken.let {it is StringToken && it.delimiter == "\""}
+    private val acceptsColon get() = jsonCompatible && elementLexeme.let {it is StringLexeme && it.delimiter == "\""}
 
     init {
         eachChar {
@@ -35,11 +33,11 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
         eachChar(::process)
 
         if (!retainSource) {
-            tokens.removeIf {it.type == TokenType.COMMENT || it.type == TokenType.WHITESPACE}
+            lexemes.removeIf {it.type.isComment || it.type == Type.WHITESPACE}
         }
     }
 
-    override fun iterator(): ListIterator<Token> = tokens.listIterator()
+    override fun iterator(): ListIterator<Lexeme> = lexemes.listIterator()
 
     private fun next() = iterator.next().also {
         if (it == '\n') {
@@ -63,7 +61,7 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
     /** @return `false` if processed. */
     private fun processWhitespaceOrComment(char: Char): Boolean = false.also {
         when {
-            char == '\n' -> this += NewlineToken(line, column)
+            char == '\n' -> this += NewlineLexeme(line, column)
             char.isWhitespace() -> whitespace(char)
             char == '/' && ifNext('/') -> comment()
             else -> return true
@@ -73,7 +71,7 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
     private inline fun requireNext(message: String, matchNewline: Boolean = false, predicate: (Char) -> Boolean) = run {
         eachChar {
             when {
-                !matchNewline && it == '\n' -> this += NewlineToken(line, column)
+                !matchNewline && it == '\n' -> this += NewlineLexeme(line, column)
                 it.isWhitespace() -> whitespace(it)
                 it == '/' && ifNext('/') -> comment()
                 predicate(it) -> {
@@ -102,8 +100,8 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
     private fun process(char: Char, key: Boolean = false) {
         if (processWhitespaceOrComment(char)) when {
             char == ',' -> comma()
-            char == '=' -> mapping(MappingOperator.EQUALS)
-            char == ':' && acceptsColon -> mapping(MappingOperator.COLON)
+            char == '=' -> mapping(Type.EQUALS)
+            char == ':' && acceptsColon -> mapping(Type.COLON)
             else -> {
                 when {
                     !key && char in "{}[]" -> structure(char)
@@ -136,18 +134,18 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
         }
     }
 
-    private infix fun add(token: Token?) {
-        token?.let {
-            tokens.add(token)
+    private infix fun add(lexeme: Lexeme?) {
+        lexeme?.let {
+            lexemes.add(lexeme)
 
-            when (token.type) {
-                TokenType.COMMA, TokenType.COMMENT, TokenType.NEWLINE, TokenType.WHITESPACE -> {}
-                else -> elementToken = token
+            when (lexeme.type) {
+                Type.COMMA, Type.LINE_COMMENT, Type.BLOCK_COMMENT, Type.NEWLINE, Type.WHITESPACE -> {}
+                else -> elementLexeme = lexeme
             }
         }
     }
 
-    private inline operator fun plusAssign(token: Token?) = this add token
+    private inline operator fun plusAssign(lexeme: Lexeme?) = this add lexeme
 
     private inline fun ifNext(target: Char, action: () -> Unit = {}): Boolean = (next() == target).also {
         when {
@@ -158,12 +156,12 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
 
     private fun error(position: String, message: String) = when {
         throwErrors -> throw SyntaxException(position, message)
-        else -> elementToken?.error = SyntaxError(message)
+        else -> elementLexeme?.error = SyntaxError(message)
     }
 
     private fun error(message: String) = error(position, message)
 
-    private fun whitespace(whitespace: Char) = this add WhitespaceToken(line, column, buildString {
+    private fun whitespace(whitespace: Char) = this add WhitespaceLexeme(line, column, buildString {
         append(whitespace)
 
         eachChar {
@@ -177,12 +175,12 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
         }
     })
 
-    private fun comma() = this add CommaToken(line, column)
+    private fun comma() = this add CommaLexeme(line, column)
 
-    private fun mapping(operator: MappingOperator) = this add MappingToken(line, column, operator)
+    private fun mapping(operator: Type) = this add MappingLexeme(line, column, operator)
 
     private fun comment() = this add when {
-        ifNext('/') -> CommentToken(line, column, CommentType.BLOCK, buildString {
+        ifNext('/') -> CommentLexeme(line, column, Type.BLOCK_COMMENT, buildString {
             eachChar {
                 if (it == '/' && next() == '/') {
                     when (val char = next()) {
@@ -196,7 +194,7 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
                 append(it)
             }
         })
-        else -> CommentToken(line, column, CommentType.LINE, buildString {
+        else -> CommentLexeme(line, column, Type.LINE_COMMENT, buildString {
             eachChar {
                 if (it == '\n') {
                     previous()
@@ -209,7 +207,7 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
     }
 
     private fun structure(char: Char) {
-        this += DelimiterToken(line, column, char)
+        this += DelimiterLexeme(line, column, char)
 
         when (char) {
             '}' -> if (context !== Context.MAP) {
@@ -249,8 +247,8 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
     }
 
     private fun string(delimiter: Char) = this add when (val length = delimiterLength(delimiter)) {
-        2 -> StringToken(line, column, delimiter.string, "")
-        else -> StringToken(line, column, delimiter.repeat(length), buildString {
+        2 -> StringLexeme(line, column, delimiter.string, "")
+        else -> StringLexeme(line, column, delimiter.repeat(length), buildString {
             eachChar {
                 if (it != delimiter) {
                     append(it)
@@ -279,7 +277,7 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
     }
 
     private fun rawString(char: Char, key: Boolean = false) {
-        val additionalTokens = ArrayList<Token>()
+        val additionalLexemes = ArrayList<Lexeme>()
 
         this += when (val string = buildString {
             append(char)
@@ -290,11 +288,11 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
                 when {
                     key && char in "={[" || !key && it in "\n,/}]" -> if (it != '/' || peek() == '/') {
                         if (whitespace != -1) {
-                            additionalTokens += WhitespaceToken(line, column, cin.substring(whitespace, previousIndex))
+                            additionalLexemes += WhitespaceLexeme(line, column, cin.substring(whitespace, previousIndex))
                         }
 
                         when (char) {
-                            '=' -> additionalTokens += MappingToken(line, column, MappingOperator.EQUALS)
+                            '=' -> additionalLexemes += MappingLexeme(line, column, Type.EQUALS)
                             else -> previous()
                         }
 
@@ -315,20 +313,20 @@ class Lexer(private val cin: String, retainSource: Boolean = false, private val 
                 }
             }
         }) {
-            "false" -> BooleanToken(line, column, false)
-            "true" -> BooleanToken(line, column, true)
-            "null" -> NullToken(line, column)
+            "false" -> BooleanLexeme(line, column, false)
+            "true" -> BooleanLexeme(line, column, true)
+            "null" -> NullLexeme(line, column)
             else -> try {
-                IntegerToken(line, column, string.toLong())
+                IntegerLexeme(line, column, string.toLong())
             } catch (exception: NumberFormatException) {
                 try {
-                    FloatToken(line, column, string.toDouble(), string.endsWith('.'))
+                    FloatLexeme(line, column, string.toDouble(), string.endsWith('.'))
                 } catch (exception: NumberFormatException) {
-                    StringToken(line, column, null, string)
+                    StringLexeme(line, column, null, string)
                 }
             }
         }
 
-        additionalTokens.forEach(::add)
+        additionalLexemes.forEach(::add)
     }
 }
