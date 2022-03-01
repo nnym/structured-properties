@@ -14,16 +14,8 @@ gronk {
 }
 
 sourceSets {
-    main {
-        java.srcDir("src")
-    }
-
     test {
-        java.srcDir("test")
-
-        resources {
-            srcDir("test/cin")
-        }
+        resources.srcDir("test/cin")
     }
 }
 

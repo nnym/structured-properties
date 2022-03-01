@@ -9,7 +9,7 @@ public enum Context {
         return switch (this) {
             case ARRAY -> '[';
             case MAP -> '{';
-            case FILE -> Character.MIN_VALUE;
+            case FILE -> Character.MAX_VALUE;
         };
     }
 

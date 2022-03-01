@@ -17,18 +17,23 @@ class TokenIterator implements ListIterator<Lexeme> {
     @Override public boolean hasNext() {
         return this.cursor < this.size;
     }
+
     @Override public boolean hasPrevious() {
         return this.cursor > 0;
     }
+
     @Override public Lexeme next() {
         return this.lexemes[this.cursor++];
     }
+
     @Override public int nextIndex() {
         return this.cursor;
     }
+
     @Override public Lexeme previous() {
         return this.lexemes[--this.cursor];
     }
+
     @Override public int previousIndex() {
         return this.cursor - 1;
     }

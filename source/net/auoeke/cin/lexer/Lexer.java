@@ -105,7 +105,7 @@ public class Lexer implements Iterable<Lexeme> {
 
     private char peek(int distance) {
         var index = this.nextIndex() + distance - 1;
-        return index >= this.cin.length() ? (char) -1 : this.cin.charAt(index);
+        return index >= this.cin.length() ? CharacterIterator.DONE : this.cin.charAt(index);
     }
 
     private char peek() {

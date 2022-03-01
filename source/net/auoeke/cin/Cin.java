@@ -14,15 +14,15 @@ public class Cin {
         return parse(new String(cin));
     }
 
-    public static Element parseFile(URL cin) {
-        return parseFile(cin, cin.toString());
+    public static Element parseResource(URL cin) {
+        return parseResource(cin, cin.toString());
     }
 
-    public static Element parseFile(Path cin) {
-        return parseFile(cin.toUri().toURL(), cin.toString());
+    public static Element parseResource(Path cin) {
+        return parseResource(cin.toUri().toURL(), cin.toString());
     }
 
-    private static Element parseFile(URL cin, String source) {
+    private static Element parseResource(URL cin, String source) {
         try {
             try (var stream = cin.openStream()) {
                 return parse(stream.readAllBytes());
