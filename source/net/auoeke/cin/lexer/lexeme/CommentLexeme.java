@@ -23,8 +23,8 @@ public final class CommentLexeme extends Lexeme {
 
     @Override public String toString() {
         return switch (this.type()) {
-            case LINE_COMMENT -> "##$value";
-            case BLOCK_COMMENT -> "/*$value*/";
+            case LINE_COMMENT -> "##" + this.value;
+            case BLOCK_COMMENT -> "/*" + this.value + "*/";
             default -> throw new IllegalStateException(this.type.toString());
         };
     }

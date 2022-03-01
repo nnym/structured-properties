@@ -29,20 +29,23 @@ public class MapElement extends HashMap<String, Element> implements Element {
     @Override public String toString() {
         return switch (this.size()) {
             case 0 -> "{}";
-            case 1 -> '{' + this.format(this.entrySet().iterator().next().getValue()) + '}';
+            case 1 -> {
+                var element = this.entrySet().iterator().next();
+                yield '{' + this.format(element.getKey(), element.getValue()) + '}';
+            }
             default -> {
                 var builder = new StringBuilder("{\n");
-                this.forEach((key, value) -> builder.append("    ").append(this.format(value).replaceAll("\n", "\n    ")).append('\n'));
+                this.forEach((key, value) -> builder.append("    ").append(this.format(key, value).replaceAll("\n", "\n    ")).append('\n'));
 
                 yield builder.append('}').toString();
             }
         };
     }
 
-    private String format(Element value) {
+    private String format(String key, Element value) {
         return switch (value.type()) {
-            case ARRAY, MAP -> "$key $value";
-            default -> "$key = $value";
+            case ARRAY, MAP -> key + ' ' + value;
+            default -> key + " = " + value;
         };
     }
 }

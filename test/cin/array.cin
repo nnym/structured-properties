@@ -1,15 +1,13 @@
-/// block comment
-a
-b
+/* block comment
+ab
 c
-d
-///
+*/
 
-// line comment
+## line comment
 [
     1,
-    2.5 /// sample text ///
-    9. // 9.0
+    2.5 /* sample text */
+    9. ## 9.0
     gazillion,
     true,
     false

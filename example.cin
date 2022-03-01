@@ -26,7 +26,7 @@ buildscript {
 }
 
 name = cin
-version = 1.2.3 1
+version = 1.2.3
 description = '
     "cin" is an acronym as defined below.
     c: concise
@@ -38,8 +38,8 @@ description = '
 
 repositories [
     mavenCentral
-    ~/.m2/repository ## or mavenLocal
-    https://maven.auoeke.net
+    ~/.m2/repository ## the local repository
+    https://repo.maven.apache.org/maven2/
 ]
 
 dependencies {

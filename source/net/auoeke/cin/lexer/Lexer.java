@@ -26,7 +26,6 @@ import net.auoeke.cin.lexer.lexeme.StringLexeme;
 import net.auoeke.cin.lexer.lexeme.WhitespaceLexeme;
 
 public class Lexer implements Iterable<Lexeme> {
-    private static final String EXPRESSION_TERMINATORS = "\n={}[]/,";
 
     private final String cin;
     private final boolean retainSource;
@@ -65,12 +64,12 @@ public class Lexer implements Iterable<Lexeme> {
         return this.savedLine + ":" + this.savedColumn;
     }
 
-    private int index() {
-        return this.iterator.getIndex();
+    private int previousIndex() {
+        return this.iterator.getIndex() - 1;
     }
 
     private int nextIndex() {
-        return this.iterator.getIndex() + 1;
+        return this.iterator.getIndex();
     }
 
     private char next() {
@@ -82,7 +81,11 @@ public class Lexer implements Iterable<Lexeme> {
         }
 
         this.column++;
-        this.iterator.setIndex(this.nextIndex());
+
+        var next = this.nextIndex() + 1;
+        if (next <= this.cin.length()) {
+            this.iterator.setIndex(next);
+        }
 
         return this.current;
     }
@@ -104,12 +107,17 @@ public class Lexer implements Iterable<Lexeme> {
     }
 
     private char peek(int distance) {
-        var index = this.nextIndex() + distance - 1;
+        var index = this.previousIndex() + distance;
         return index >= this.cin.length() ? CharacterIterator.DONE : this.cin.charAt(index);
     }
 
     private char peek() {
         return this.peek(1);
+    }
+
+    private void index(int index) {
+        this.iterator.setIndex(index + 1);
+        this.current = this.cin.charAt(index);
     }
 
     private void savePosition() {
@@ -191,13 +199,15 @@ public class Lexer implements Iterable<Lexeme> {
 
     private void process(char character, boolean key) {
         this.savePosition();
+
         if (!this.whitespaceOrComment(character) && !this.comma(character) && !this.mapping(character)) {
             this.scanExpression(character, key);
+
             if (key) {
-                this.requireNext(ErrorKey.NO_MAPPING, s -> contains("={[", s));
+                this.requireNext(ErrorKey.NO_MAPPING, next -> contains("={[", next));
             } else {
                 while (this.advance()) {
-                    if (contains(EXPRESSION_TERMINATORS, this.current) && (this.current != '/' || this.peek() == '/')) {
+                    if (this.shouldTerminateExpression()) {
                         this.previous();
                         return;
                     }
@@ -282,8 +292,8 @@ public class Lexer implements Iterable<Lexeme> {
                             builder.append('/');
 
                             var next = this.next();
-                            builder.append(next)
-                            ;
+                            builder.append(next);
+
                             if (next == '*') {
                                 depth++;
                             }
@@ -376,17 +386,17 @@ public class Lexer implements Iterable<Lexeme> {
                     if (this.current == delimiter) {
                         var count = 1;
 
-                        while (count < length && this.peek(count) == delimiter) {
+                        while (count < length && this.next() == delimiter) {
                             count++;
                         }
 
                         if (count == length) {
-                            repeat(count - 1, this::next);
                             return;
                         }
 
+                        this.index(this.previousIndex() - count);
                         builder.append(this.current);
-                        repeat(count - 1, () -> builder.append(this.next()));
+                        repeat(count, () -> builder.append(this.next()));
                     } else {
                         builder.append(this.current);
                     }
@@ -405,9 +415,9 @@ public class Lexer implements Iterable<Lexeme> {
             var whitespace = -1;
 
             while (this.advance()) {
-                if (EXPRESSION_TERMINATORS.indexOf(this.current) >= 0 && (this.current != '/' || this.peek() == '/')) {
+                if (this.shouldTerminateExpression()) {
                     if (whitespace != -1) {
-                        additionalLexemes.add(new WhitespaceLexeme(this.savedLine, this.savedColumn, this.cin.substring(whitespace, this.index())));
+                        additionalLexemes.add(new WhitespaceLexeme(this.savedLine, this.savedColumn, this.cin.substring(whitespace, this.previousIndex())));
                     }
 
                     switch (character) {
@@ -416,17 +426,17 @@ public class Lexer implements Iterable<Lexeme> {
                     }
 
                     return;
-                } else if (Character.isWhitespace(this.current)) {
+                }
+
+                if (Character.isWhitespace(this.current)) {
                     if (whitespace == -1) {
-                        whitespace = this.index();
+                        whitespace = this.previousIndex();
                     }
+                } else if (whitespace == -1) {
+                    builder.append(this.current);
                 } else {
-                    if (whitespace == -1) {
-                        builder.append(this.current);
-                    } else {
-                        IntStream.rangeClosed(whitespace, this.index()).forEach(index -> builder.append(this.cin.charAt(index)));
-                        whitespace = -1;
-                    }
+                    IntStream.rangeClosed(whitespace, this.previousIndex()).forEach(index -> builder.append(this.cin.charAt(index)));
+                    whitespace = -1;
                 }
             }
         });
@@ -451,6 +461,14 @@ public class Lexer implements Iterable<Lexeme> {
         additionalLexemes.forEach(this::add);
     }
 
+    private boolean shouldTerminateExpression() {
+        return contains("\n={}[],", this.current) || switch (this.current) {
+            case '#' -> this.peek() == '#';
+            case '/' -> this.peek() == '*';
+            default -> false;
+        };
+    }
+
     private static String buildString(Consumer<StringBuilder> builder) {
         var b = new StringBuilder();
         builder.accept(b);
@@ -458,7 +476,7 @@ public class Lexer implements Iterable<Lexeme> {
     }
 
     private static void repeat(int n, Runnable action) {
-        IntStream.range(0, n - 1).forEach(__ -> action.run());
+        IntStream.range(0, n).forEach(__ -> action.run());
     }
 
     private static boolean contains(String string, char character) {

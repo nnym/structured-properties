@@ -1,1 +1,1 @@
-This file is evaluated to a string when it is parsed.
+This file is parsed as a string and a newline.
