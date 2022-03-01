@@ -11,9 +11,10 @@ import kotlin.io.println
 class Tests {
     @Test
     fun test() {
-        var string = Lexer(type.loader!!.resource("string.cin")!!.readText(), retainSource = true)
-        var array = Lexer(type.loader!!.resource("array.cin")!!.readText(), retainSource = true)
-        var map = Lexer(type.loader!!.resource("map.cin")!!.readText(), retainSource = true)
+        var string = Lexer(type.loader!!.resource("string.cin")!!.readText(), true)
+        var array = Lexer(type.loader!!.resource("array.cin")!!.readText(), true)
+        var map = Lexer(type.loader!!.resource("map.cin")!!.readText(), true)
+        var example = Lexer(Path("example.cin").readText(), true)
 
         println(Cin.parseResource("test.cin"))
 

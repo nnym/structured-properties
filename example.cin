@@ -1,10 +1,10 @@
-/// syntax (pseudoregex)
+/* syntax (pseudoregex)
 delimiter: (?<!\\)['"`]({1}|{3,})
 separator: ,|\n
 element: $null|$boolean|$integer|$float|$string|$array|$map
 pair: \w+[:=]$element|\w+($map|$array)
 
-// evaluated in this order
+## evaluated in this order
 integer: \d+
 float: \d+\.\d+
 boolean: false|true
@@ -14,10 +14,10 @@ array: [$element?(${separator}element)*]
 map: {$pair?(${separator}$pair)*}
 string|: \w(.*\w)?
 
-file: $element(${separator}$element)*|$pair(${separator}$pair)*
-///
+file: $element(${separator}$element)*|$pair(${separator}$pair)
+*/
 
-// an example
+/* an example /* nested comment */ */
 
 buildscript {
     dependencies {
@@ -26,20 +26,19 @@ buildscript {
 }
 
 name = cin
-version = 0.0.0
+version = 1.2.3 1
 description = '
-    "cin" is an acronym as shown below.
+    "cin" is an acronym as defined below.
     c: concise
     i: information
     n: notation
 
-    cin is intended to be a human-readable, human-writable and concise
-    alternative to popular serialization formats like JSON.
+    cin is intended to be a human-readable and human-writable alternative to popular serialization formats like JSON.
 '
 
 repositories [
     mavenCentral
-    "~/.m2/repository" // or mavenLocal
+    ~/.m2/repository ## or mavenLocal
     https://maven.auoeke.net
 ]
 
