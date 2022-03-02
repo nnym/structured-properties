@@ -29,12 +29,8 @@ public class MapElement extends LinkedHashMap<String, Element> implements Elemen
     @Override public String toString() {
         return switch (this.size()) {
             case 0 -> "{}";
-            case 1 -> {
-                var element = this.entrySet().iterator().next();
-                yield '{' + this.format(element.getKey(), element.getValue()) + '}';
-            }
             default -> {
-                var builder = new StringBuilder("{\n");
+                var builder = new StringBuilder("{").append(System.lineSeparator());
                 this.forEach((key, value) -> builder.append("    ").append(this.format(key, value).replaceAll("\n", "\n    ")).append('\n'));
 
                 yield builder.append('}').toString();
