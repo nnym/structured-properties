@@ -4,8 +4,8 @@ public class FloatElement extends NumberElement {
     private double value;
     private boolean raw;
 
-    public FloatElement(double value) {
-        super(Double.toString(value));
+    public FloatElement(String source, double value) {
+        super(source);
 
         this.value = value;
     }
@@ -16,8 +16,19 @@ public class FloatElement extends NumberElement {
         this.raw = true;
     }
 
+    public FloatElement(double value) {
+        super(Double.toString(value));
+
+        this.value = value;
+    }
+
     public double value() {
-        return this.raw ? this.value = Double.parseDouble(this.source) : this.value;
+        if (this.raw) {
+            this.value = Double.parseDouble(this.source);
+            this.raw = false;
+        }
+
+        return this.value;
     }
 
     @Override public Type type() {

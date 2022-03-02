@@ -110,16 +110,20 @@ public class Parser {
             case STRING -> {
                 var string = (StringLexeme) this.lexeme;
 
+                if (string.delimiter != null) {
+                    yield new StringElement(string.value, string.delimiter);
+                }
+
                 yield switch (string.value) {
                     case "false" -> BooleanElement.of(false);
                     case "true" -> BooleanElement.of(true);
                     case "null" -> NullElement.instance;
                     default -> {
                         try {
-                            yield new IntegerElement(Long.parseLong(string.value));
+                            yield new IntegerElement(string.value, Long.parseLong(string.value));
                         } catch (NumberFormatException exception) {
                             try {
-                                yield new FloatElement(Double.parseDouble(string.value));
+                                yield new FloatElement(string.value, Double.parseDouble(string.value));
                             } catch (NumberFormatException e) {
                                 yield new StringElement(string.value, string.delimiter);
                             }

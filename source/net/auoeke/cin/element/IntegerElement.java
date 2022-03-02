@@ -4,6 +4,12 @@ public class IntegerElement extends NumberElement {
     private long value;
     private boolean raw;
 
+    public IntegerElement(String source, long value) {
+        super(source);
+
+        this.value = value;
+    }
+
     public IntegerElement(long value) {
         super(Long.toString(value));
 
