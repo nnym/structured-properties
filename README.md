@@ -36,6 +36,24 @@ and optional preceding `[+-]`.
   - `{key = value}`
   - `{pocket [wallet, phone]}`
 
+Sole top-level structures' delimiters can be omitted:
+```
+## This file represents an array.
+one
+2
+three
+```
+```
+## This file represents a map; not an array of pairs.
+key = value
+question = Remember properties?
+```
+```
+## This file represents a pair.
+key = value
+## Adding another element here would produce a map.
+```
+
 ### Comments
 - A **line comment** starts with `##` and lasts until the next line.
   - `time = 6:00 ## My alarm is set to ring at this time.`
