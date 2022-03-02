@@ -11,8 +11,8 @@ public final class MappingLexeme extends Lexeme {
         super(line, column);
     }
 
-    @Override public Type type() {
-        return Type.EQUALS;
+    @Override public Token token() {
+        return Token.MAPPING;
     }
 
     @Override public String toString() {

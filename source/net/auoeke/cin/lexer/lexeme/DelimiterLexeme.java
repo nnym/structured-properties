@@ -3,23 +3,23 @@ package net.auoeke.cin.lexer.lexeme;
 import net.auoeke.cin.lexer.error.SyntaxError;
 
 public final class DelimiterLexeme extends Lexeme {
-    public final char value;
+    public final Token token;
 
-    public DelimiterLexeme(int line, int column, char value, SyntaxError error) {
+    public DelimiterLexeme(int line, int column, Token token, SyntaxError error) {
         super(line, column, error);
 
-        this.value = value;
+        this.token = token;
     }
 
-    public DelimiterLexeme(int line, int column, char value) {
-        this(line, column, value, null);
+    public DelimiterLexeme(int line, int column, Token token) {
+        this(line, column, token, null);
     }
 
-    @Override public Type type() {
-        return Type.DELIMITER;
+    @Override public Token token() {
+        return this.token;
     }
 
     @Override public String toString() {
-        return String.valueOf(this.value);
+        return String.valueOf(this.token().character());
     }
 }

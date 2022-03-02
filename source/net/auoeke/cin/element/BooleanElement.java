@@ -1,10 +1,17 @@
 package net.auoeke.cin.element;
 
 public class BooleanElement implements Element {
+    private static final BooleanElement tru = new BooleanElement(true);
+    private static final BooleanElement fals = new BooleanElement(false);
+
     public boolean value;
 
-    public BooleanElement(boolean value) {
+    private BooleanElement(boolean value) {
         this.value = value;
+    }
+
+    public static BooleanElement of(boolean value) {
+        return value ? tru : fals;
     }
 
     @Override public Type type() {

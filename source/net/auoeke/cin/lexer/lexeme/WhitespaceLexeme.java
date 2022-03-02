@@ -15,8 +15,8 @@ public final class WhitespaceLexeme extends Lexeme {
         this(line, column, value, null);
     }
 
-    @Override public Type type() {
-        return Type.WHITESPACE;
+    @Override public Token token() {
+        return Token.WHITESPACE;
     }
 
     @Override public String toString() {

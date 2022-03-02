@@ -1,15 +1,25 @@
 package net.auoeke.cin.lexer;
 
+import net.auoeke.cin.lexer.lexeme.Token;
+
 public enum Context {
     FILE,
     ARRAY,
     MAP;
 
-    public char start() {
+    public Token begin() {
         return switch (this) {
-            case ARRAY -> '[';
-            case MAP -> '{';
-            case FILE -> Character.MAX_VALUE;
+            case ARRAY -> Token.ARRAY_BEGIN;
+            case MAP -> Token.MAP_BEGIN;
+            case FILE -> null;
+        };
+    }
+
+    public Token end() {
+        return switch (this) {
+            case ARRAY -> Token.ARRAY_END;
+            case MAP -> Token.MAP_END;
+            case FILE -> null;
         };
     }
 

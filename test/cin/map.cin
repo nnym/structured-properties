@@ -1,2 +1,13 @@
 key #0 = value #0
 java.io.tmpdir = /tmp
+
+map {
+    name = hello
+    address = 3 test street
+
+    array [thing 1, thing 2]
+
+    map2 {}
+}
+
+array [one two, 3, "4", '5', true = false, {key = value}, [nesting]]

@@ -3,16 +3,23 @@ package net.auoeke.cin.lexer;
 import java.util.ListIterator;
 import net.auoeke.cin.lexer.lexeme.Lexeme;
 
-class TokenIterator implements ListIterator<Lexeme> {
+public class LexemeIterator implements ListIterator<Lexeme> {
     private final int size;
     private final Lexeme[] lexemes;
+    private int cursor = 0;
 
-    TokenIterator(int size, Lexeme[] lexemes) {
+    public LexemeIterator(int size, Lexeme[] lexemes) {
         this.size = size;
         this.lexemes = lexemes;
     }
 
-    private int cursor = 0;
+    public void cursor(int cursor) {
+        if (cursor < 0 || cursor > this.size) {
+            throw new IllegalArgumentException(Integer.toString(cursor));
+        }
+
+        this.cursor = cursor;
+    }
 
     @Override public boolean hasNext() {
         return this.cursor < this.size;

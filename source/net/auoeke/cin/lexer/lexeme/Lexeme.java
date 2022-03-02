@@ -17,7 +17,7 @@ public abstract class Lexeme implements CharSequence {
         this(line, column, null);
     }
 
-    public abstract Type type();
+    public abstract Token token();
 
     @Override public abstract String toString();
 
@@ -31,36 +31,5 @@ public abstract class Lexeme implements CharSequence {
 
     @Override public CharSequence subSequence(int start, int end) {
         return this.toString().substring(start, end);
-    }
-
-    public enum Type {
-        WHITESPACE,
-        NEWLINE,
-        LINE_COMMENT,
-        BLOCK_COMMENT,
-        COMMA,
-        DELIMITER,
-        EQUALS,
-        BOOLEAN,
-        NULL,
-        INTEGER,
-        FLOAT,
-        STRING;
-
-        public final boolean isMapping() {
-            return this == EQUALS;
-        }
-
-        public final boolean isWhitespace() {
-            return this == WHITESPACE || this == NEWLINE;
-        }
-
-        public final boolean isComment() {
-            return this == LINE_COMMENT || this == BLOCK_COMMENT;
-        }
-
-        public final boolean isSourceOnly() {
-            return this == WHITESPACE || this.isComment();
-        }
     }
 }

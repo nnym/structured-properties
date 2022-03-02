@@ -11,8 +11,8 @@ public final class NewlineLexeme extends Lexeme {
         super(line, column);
     }
 
-    @Override public Type type() {
-        return Type.NEWLINE;
+    @Override public Token token() {
+        return Token.NEWLINE;
     }
 
     @Override public String toString() {

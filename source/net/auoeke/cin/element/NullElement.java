@@ -1,6 +1,6 @@
 package net.auoeke.cin.element;
 
-public class NullElement implements Element {
+public final class NullElement implements Element {
     public static final NullElement instance = new NullElement();
 
     private NullElement() {}

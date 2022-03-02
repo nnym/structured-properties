@@ -1,9 +1,9 @@
 package net.auoeke.cin.element;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MapElement extends HashMap<String, Element> implements Element {
+public class MapElement extends LinkedHashMap<String, Element> implements Element {
     public MapElement() {}
 
     public MapElement(int initialCapacity, float loadFactor) {

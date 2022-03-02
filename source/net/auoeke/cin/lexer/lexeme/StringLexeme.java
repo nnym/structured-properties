@@ -17,8 +17,8 @@ public final class StringLexeme extends Lexeme {
         this(line, column, delimiter, value, null);
     }
 
-    @Override public Type type() {
-        return Type.STRING;
+    @Override public Token token() {
+        return Token.STRING;
     }
 
     @Override public String toString() {

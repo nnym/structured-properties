@@ -4,29 +4,23 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import net.auoeke.cin.lexer.error.ErrorKey;
 import net.auoeke.cin.lexer.error.SyntaxError;
 import net.auoeke.cin.lexer.error.SyntaxException;
-import net.auoeke.cin.lexer.lexeme.BooleanLexeme;
 import net.auoeke.cin.lexer.lexeme.CommaLexeme;
 import net.auoeke.cin.lexer.lexeme.CommentLexeme;
 import net.auoeke.cin.lexer.lexeme.DelimiterLexeme;
-import net.auoeke.cin.lexer.lexeme.FloatLexeme;
-import net.auoeke.cin.lexer.lexeme.IntegerLexeme;
 import net.auoeke.cin.lexer.lexeme.Lexeme;
-import net.auoeke.cin.lexer.lexeme.Lexeme.Type;
 import net.auoeke.cin.lexer.lexeme.MappingLexeme;
 import net.auoeke.cin.lexer.lexeme.NewlineLexeme;
-import net.auoeke.cin.lexer.lexeme.NullLexeme;
 import net.auoeke.cin.lexer.lexeme.StringLexeme;
+import net.auoeke.cin.lexer.lexeme.Token;
 import net.auoeke.cin.lexer.lexeme.WhitespaceLexeme;
 
-public class Lexer implements Iterable<Lexeme> {
-
+public class Lexer {
     private final String cin;
     private final boolean retainSource;
     private final boolean throwExceptions;
@@ -56,8 +50,8 @@ public class Lexer implements Iterable<Lexeme> {
         this(cin, false, true);
     }
 
-    @Override public ListIterator<Lexeme> iterator() {
-        return this.lexemes.listIterator();
+    public LexemeIterator iterator() {
+        return new LexemeIterator(this.lexemes.size(), this.lexemes.toArray(Lexeme[]::new));
     }
 
     private String position() {
@@ -154,12 +148,12 @@ public class Lexer implements Iterable<Lexeme> {
         this.error(error);
     }
 
-    private void requireClose(char character, ErrorKey error) {
+    private void requireClose(Token character, ErrorKey error) {
         var position = this.position();
 
         while (this.advance()) {
-            if (this.current == character) {
-                this.structure(this.current);
+            if (this.current == character.character()) {
+                this.structure(character.character());
                 return;
             }
 
@@ -227,29 +221,23 @@ public class Lexer implements Iterable<Lexeme> {
     }
 
     private void add(Lexeme lexeme) {
-        if (lexeme != null && (this.retainSource || !lexeme.type().isSourceOnly())) {
+        if (lexeme != null && (this.retainSource || !lexeme.token().sourceOnly())) {
             this.lexemes.add(lexeme);
 
-            if (!lexeme.type().isSourceOnly()) {
+            if (!lexeme.token().sourceOnly()) {
                 this.lastCode = lexeme;
             }
         }
     }
 
-    private boolean ifNext(char target, Runnable action) {
+    private boolean isNext(char target) {
         var result = this.next() == target;
 
-        if (result) {
-            action.run();
-        } else {
+        if (!result) {
             this.previous();
         }
 
         return result;
-    }
-
-    private boolean ifNext(char target) {
-        return this.ifNext(target, () -> {});
     }
 
     private void error(String position, ErrorKey error) {
@@ -282,8 +270,8 @@ public class Lexer implements Iterable<Lexeme> {
     }
 
     private boolean comment(char character) {
-        if (character == '/' && this.ifNext('*')) {
-            this.add(new CommentLexeme(this.savedLine, this.savedColumn, Type.BLOCK_COMMENT, buildString(builder -> {
+        if (character == '/' && this.isNext('*')) {
+            this.add(new CommentLexeme(this.savedLine, this.savedColumn, Token.BLOCK_COMMENT, buildString(builder -> {
                 var depth = 1;
 
                 while (this.advance()) {
@@ -310,8 +298,8 @@ public class Lexer implements Iterable<Lexeme> {
                     }
                 }
             })));
-        } else if (character == '#' && this.ifNext('#')) {
-            this.add(new CommentLexeme(this.savedLine, this.savedColumn, Type.LINE_COMMENT, buildString(builder -> {
+        } else if (character == '#' && this.isNext('#')) {
+            this.add(new CommentLexeme(this.savedLine, this.savedColumn, Token.LINE_COMMENT, buildString(builder -> {
                 while (this.advance()) {
                     if (this.current == '\n') {
                         this.previous();
@@ -328,30 +316,31 @@ public class Lexer implements Iterable<Lexeme> {
     }
 
     private void structure(char character) {
-        this.add(new DelimiterLexeme(this.savedLine, this.savedColumn, character));
+        var token = Token.delimiter(character);
+        this.add(new DelimiterLexeme(this.savedLine, this.savedColumn, token));
 
-        switch (character) {
-            case '}' -> {
-                if (this.context != Context.MAP) {
-                    this.error(ErrorKey.RBRACE_OUTSIDE_MAP);
+        switch (token) {
+            case ARRAY_END -> {
+                if (this.context != Context.ARRAY) {
+                    this.error(ErrorKey.RBRACKET_OUTSIDE_ARRAY);
                 }
             }
-            case ']' -> {
-                if (this.context != Context.ARRAY) {
-                    this.error(ErrorKey.RBRACKET_OUTSIDE_MAP);
+            case MAP_END -> {
+                if (this.context != Context.MAP) {
+                    this.error(ErrorKey.RBRACE_OUTSIDE_MAP);
                 }
             }
             default -> {
                 var previousContext = this.context;
 
-                switch (character) {
-                    case '{' -> {
-                        this.context = Context.MAP;
-                        this.requireClose('}', ErrorKey.UNCLOSED_MAP);
-                    }
-                    case '[' -> {
+                switch (token) {
+                    case ARRAY_BEGIN -> {
                         this.context = Context.ARRAY;
-                        this.requireClose(']', ErrorKey.UNCLOSED_ARRAY);
+                        this.requireClose(Token.ARRAY_END, ErrorKey.UNCLOSED_ARRAY);
+                    }
+                    case MAP_BEGIN -> {
+                        this.context = Context.MAP;
+                        this.requireClose(Token.MAP_END, ErrorKey.UNCLOSED_MAP);
                     }
                 }
 
@@ -441,22 +430,7 @@ public class Lexer implements Iterable<Lexeme> {
             }
         });
 
-        this.add(switch (string) {
-            case "false" -> new BooleanLexeme(this.savedLine, this.savedColumn, false);
-            case "true" -> new BooleanLexeme(this.savedLine, this.savedColumn, true);
-            case "null" -> new NullLexeme(this.savedLine, this.savedColumn);
-            default -> {
-                try {
-                    yield new IntegerLexeme(this.savedLine, this.savedColumn, Long.parseLong(string));
-                } catch (NumberFormatException exception) {
-                    try {
-                        yield new FloatLexeme(this.savedLine, this.savedColumn, Double.parseDouble(string), string);
-                    } catch (NumberFormatException e) {
-                        yield new StringLexeme(this.savedLine, this.savedColumn, null, string);
-                    }
-                }
-            }
-        });
+        this.add(new StringLexeme(this.savedLine, this.savedColumn, null, string));
 
         additionalLexemes.forEach(this::add);
     }

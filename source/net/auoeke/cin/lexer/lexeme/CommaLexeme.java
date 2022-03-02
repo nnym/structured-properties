@@ -11,8 +11,8 @@ public final class CommaLexeme extends Lexeme {
         super(line, column);
     }
 
-    @Override public Type type() {
-        return Type.COMMA;
+    @Override public Token token() {
+        return Token.COMMA;
     }
 
     @Override public String toString() {

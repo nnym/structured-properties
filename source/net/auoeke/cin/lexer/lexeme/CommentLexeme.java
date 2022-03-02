@@ -4,28 +4,28 @@ import net.auoeke.cin.lexer.error.SyntaxError;
 
 public final class CommentLexeme extends Lexeme {
     public final String value;
-    public final Type type;
+    public final Token token;
 
-    public CommentLexeme(int line, int column, Type type, String value, SyntaxError error) {
+    public CommentLexeme(int line, int column, Token token, String value, SyntaxError error) {
         super(line, column, error);
 
-        this.type = type;
+        this.token = token;
         this.value = value;
     }
 
-    public CommentLexeme(int line, int column, Type type, String value) {
-        this(line, column, type, value, null);
+    public CommentLexeme(int line, int column, Token token, String value) {
+        this(line, column, token, value, null);
     }
 
-    @Override public Type type() {
-        return this.type;
+    @Override public Token token() {
+        return this.token;
     }
 
     @Override public String toString() {
-        return switch (this.type()) {
+        return switch (this.token()) {
             case LINE_COMMENT -> "##" + this.value;
             case BLOCK_COMMENT -> "/*" + this.value + "*/";
-            default -> throw new IllegalStateException(this.type.toString());
+            default -> throw new IllegalStateException(this.token.toString());
         };
     }
 }

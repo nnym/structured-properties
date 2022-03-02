@@ -1,10 +1,23 @@
 package net.auoeke.cin.element;
 
 public class IntegerElement extends NumberElement {
-    public long value;
+    private long value;
+    private boolean raw;
 
     public IntegerElement(long value) {
+        super(Long.toString(value));
+
         this.value = value;
+    }
+
+    public IntegerElement(String value) {
+        super(value);
+
+        this.raw = true;
+    }
+
+    public double value() {
+        return this.raw ? this.value = Long.parseLong(this.source) : this.value;
     }
 
     @Override public Type type() {
@@ -36,14 +49,10 @@ public class IntegerElement extends NumberElement {
     }
 
     @Override public int hashCode() {
-        return Double.hashCode(this.value);
+        return Long.hashCode(this.value);
     }
 
     @Override public boolean equals(Object other) {
         return other instanceof IntegerElement integer && this.value == integer.value;
-    }
-
-    @Override public String toString() {
-        return Long.toString(this.value);
     }
 }
