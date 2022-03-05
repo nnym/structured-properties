@@ -1,23 +1,23 @@
-/* syntax (pseudoregex)
-delimiter: (?<!\\)['"`]({1}|{3,})
-separator: ,|\n
-element: $null|$boolean|$integer|$float|$string|$array|$map
-pair: \w+[:=]$element|\w+($map|$array)
+/* regex pseudogrammar
+CHARACTER: [^]\[{}=\s,]
+DELIMITER: ["'] | ["']{3,}
+SEPARATOR: [\n,]
+ELEMENT: NULL | BOOLEAN | INTEGER | FLOAT | STRING | PAIR | ARRAY | MAP
 
-## evaluated in this order
-integer: \d+
-float: \d+\.\d+
-boolean: false|true
-null: null
-string: (?s)$delimiter.*$delimiter
-array: [$element?(${separator}element)*]
-map: {$pair?(${separator}$pair)*}
-string|: \w(.*\w)?
+INTEGER: \d+
+FLOAT: \d+\.\d+
+BOOLEAN: "false" | "true"
+NULL: "null"
+STRING: (?s) DELIMITER .* DELIMITER | CHARACTER ([\s[^\n]]* CHARACTER)*
+PAIR: ELEMENT [:=] ELEMENT | STRING (MAP | ARRAY)
+KEY_PAIR: STRING ([:=] ELEMENT | MAP | ARRAY)
+ARRAY: "[" ELEMENT? (SEPARATOR ELEMENT)* "]"
+MAP: "{" PAIR? (SEPARATOR KEY_PAIR)* "}"
 
-file: $element(${separator}$element)*|$pair(${separator}$pair)
+FILE: ELEMENT (SEPARATOR ELEMENT)* | PAIR (SEPARATOR PAIR)*
 */
 
-/* an example /* nested comment */ */
+/* an example /* nested */ comment */
 
 buildscript {
     dependencies {
@@ -33,7 +33,7 @@ description = '
     i: information
     n: notation
 
-    cin is intended to be a human-readable and human-writable alternative to popular serialization formats like JSON.
+    cin is intended to be a human-readable and human-writable alternative to popular serialization languages like JSON.
 '
 
 repositories [
