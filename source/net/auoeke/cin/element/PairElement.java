@@ -11,6 +11,17 @@ public class PairElement implements Element {
         this.b = b;
     }
 
+    public MapElement map() {
+        if (this.a instanceof PrimitiveElement primitive) {
+            var map = new MapElement();
+            map.put(primitive.stringValue(), this.b);
+
+            return map;
+        }
+
+        throw new UnsupportedOperationException("key (%s) is not primitive".formatted(this.a));
+    }
+
     @Override public Type type() {
         return Type.PAIR;
     }
@@ -24,6 +35,6 @@ public class PairElement implements Element {
     }
 
     @Override public String toString() {
-        return this.a + " = " + this.b;
+        return this.a instanceof PrimitiveElement && this.b.type().structure() ? this.a + " " + this.b : this.a + " = " + this.b;
     }
 }

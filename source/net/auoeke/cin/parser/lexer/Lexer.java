@@ -1,31 +1,36 @@
-package net.auoeke.cin.lexer;
+package net.auoeke.cin.parser.lexer;
 
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
+import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
-import net.auoeke.cin.lexer.error.ErrorKey;
-import net.auoeke.cin.lexer.error.SyntaxError;
-import net.auoeke.cin.lexer.error.SyntaxException;
-import net.auoeke.cin.lexer.lexeme.CommaLexeme;
-import net.auoeke.cin.lexer.lexeme.CommentLexeme;
-import net.auoeke.cin.lexer.lexeme.DelimiterLexeme;
-import net.auoeke.cin.lexer.lexeme.Lexeme;
-import net.auoeke.cin.lexer.lexeme.MappingLexeme;
-import net.auoeke.cin.lexer.lexeme.NewlineLexeme;
-import net.auoeke.cin.lexer.lexeme.StringLexeme;
-import net.auoeke.cin.lexer.lexeme.Token;
-import net.auoeke.cin.lexer.lexeme.WhitespaceLexeme;
+import net.auoeke.cin.Cin;
+import net.auoeke.cin.parser.lexer.lexeme.CommaLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.CommentLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.DelimiterLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.Lexeme;
+import net.auoeke.cin.parser.lexer.lexeme.MappingLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.NewlineLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.StringLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.Token;
+import net.auoeke.cin.parser.lexer.lexeme.WhitespaceLexeme;
+import net.auoeke.cin.parser.Context;
+import net.auoeke.cin.parser.lexer.error.ErrorKey;
+import net.auoeke.cin.parser.lexer.error.SyntaxError;
+import net.auoeke.cin.parser.lexer.error.SyntaxException;
 
 public class Lexer {
     private final String cin;
-    private final boolean retainSource;
-    private final boolean throwExceptions;
     private final StringCharacterIterator iterator;
     private final List<Lexeme> lexemes = new ArrayList<>();
+    private final boolean retainComments;
+    private final boolean retainSource;
+    private final boolean throwExceptions;
 
     private int line = 1;
     private int column = 0;
@@ -35,18 +40,21 @@ public class Lexer {
     private Context context;
     private Lexeme lastCode;
 
-    public Lexer(String cin, boolean retainSource, boolean throwExceptions) {
+    public Lexer(String cin, boolean retainSource, boolean throwExceptions, Cin.Option... options) {
         this.cin = cin;
-        this.retainSource = retainSource;
-        this.throwExceptions = throwExceptions;
         this.iterator = new StringCharacterIterator(cin);
 
+        var optionSet = new HashSet<>(Arrays.asList(options));
+        this.retainComments = optionSet.contains(Cin.Option.RETAIN_COMMENTS);
+        this.retainSource = retainSource;
+        this.throwExceptions = throwExceptions;
+
         while (this.advance()) {
-            this.process(this.current);
+            this.process();
         }
     }
 
-    public Lexer(String cin) {
+    public Lexer(String cin, Cin.Option... options) {
         this(cin, false, true);
     }
 
@@ -100,13 +108,23 @@ public class Lexer {
         return previous;
     }
 
+    private char peek() {
+        return this.peek(1);
+    }
+
+    private boolean peek(String expected) {
+        for (var index = 0; index < expected.length(); index++) {
+            if (this.peek(index) != expected.charAt(index)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private char peek(int distance) {
         var index = this.previousIndex() + distance;
         return index >= this.cin.length() ? CharacterIterator.DONE : this.cin.charAt(index);
-    }
-
-    private char peek() {
-        return this.peek(1);
     }
 
     private void index(int index) {
@@ -119,25 +137,25 @@ public class Lexer {
         this.savedColumn = this.column;
     }
 
-    private boolean whitespaceOrComment(char character) {
-        if (character == '\n') {
+    private boolean whitespaceOrComment() {
+        if (this.current == '\n') {
             this.add(new NewlineLexeme(this.savedLine, this.savedColumn));
-        } else if (Character.isWhitespace(character)) {
-            this.whitespace(character);
+        } else if (Character.isWhitespace(this.current)) {
+            this.whitespace(this.current);
         } else {
-            return this.comment(character);
+            return this.comment();
         }
 
         return true;
     }
 
-    private void requireNext(ErrorKey error, Predicate<Character> predicate) {
+    private void requireNext(ErrorKey error, IntPredicate predicate) {
         while (this.advance()) {
             this.savePosition();
 
-            if (!this.whitespaceOrComment(this.current)) {
+            if (!this.whitespaceOrComment()) {
                 if (predicate.test(this.current)) {
-                    this.process(this.current);
+                    this.process();
                     return;
                 }
 
@@ -157,7 +175,7 @@ public class Lexer {
                 return;
             }
 
-            this.process(this.current);
+            this.process();
         }
 
         this.error(position, error);
@@ -181,21 +199,21 @@ public class Lexer {
         return false;
     }
 
-    private void scanExpression(char character, boolean key) {
-        if (!key && contains("{}[]", character)) {
-            this.structure(character);
-        } else if (contains("\"'`", character)) {
-            this.string(character);
+    private void scanExpression(boolean key) {
+        if (!key && contains("{}[]", this.current)) {
+            this.structure(this.current);
+        } else if (contains("\"'`", this.current)) {
+            this.string(this.current);
         } else {
-            this.rawString(character);
+            this.rawString(this.current);
         }
     }
 
-    private void process(char character, boolean key) {
+    private void process(boolean key) {
         this.savePosition();
 
-        if (!this.whitespaceOrComment(character) && !this.comma(character) && !this.mapping(character)) {
-            this.scanExpression(character, key);
+        if (!this.whitespaceOrComment() && !this.comma(this.current) && !this.mapping(this.current)) {
+            this.scanExpression(key);
 
             if (key) {
                 this.requireNext(ErrorKey.NO_MAPPING, next -> contains("={[", next));
@@ -216,28 +234,18 @@ public class Lexer {
         }
     }
 
-    private void process(char character) {
-        this.process(character, false);
+    private void process() {
+        this.process(false);
     }
 
     private void add(Lexeme lexeme) {
-        if (lexeme != null && (this.retainSource || !lexeme.token().sourceOnly())) {
+        if (lexeme != null && (lexeme.token().comment() ? this.retainComments : this.retainSource || lexeme.token() != Token.WHITESPACE)) {
             this.lexemes.add(lexeme);
 
             if (!lexeme.token().sourceOnly()) {
                 this.lastCode = lexeme;
             }
         }
-    }
-
-    private boolean isNext(char target) {
-        var result = this.next() == target;
-
-        if (!result) {
-            this.previous();
-        }
-
-        return result;
     }
 
     private void error(String position, ErrorKey error) {
@@ -269,8 +277,8 @@ public class Lexer {
         })));
     }
 
-    private boolean comment(char character) {
-        if (character == '/' && this.isNext('*')) {
+    private boolean comment() {
+        if (this.peek("/*")) {
             this.add(new CommentLexeme(this.savedLine, this.savedColumn, Token.BLOCK_COMMENT, buildString(builder -> {
                 var depth = 1;
 
@@ -298,7 +306,7 @@ public class Lexer {
                     }
                 }
             })));
-        } else if (character == '#' && this.isNext('#')) {
+        } else if (this.peek("##")) {
             this.add(new CommentLexeme(this.savedLine, this.savedColumn, Token.LINE_COMMENT, buildString(builder -> {
                 while (this.advance()) {
                     if (this.current == '\n') {
@@ -453,7 +461,7 @@ public class Lexer {
         IntStream.range(0, n).forEach(__ -> action.run());
     }
 
-    private static boolean contains(String string, char character) {
+    private static boolean contains(String string, int character) {
         return string.indexOf(character) >= 0;
     }
 }

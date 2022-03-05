@@ -1,4 +1,4 @@
-package net.auoeke.cin.lexer.error;
+package net.auoeke.cin.parser.lexer.error;
 
 public class SyntaxError {
     public final String message;

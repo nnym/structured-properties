@@ -1,4 +1,4 @@
-package net.auoeke.cin.lexer.error;
+package net.auoeke.cin.parser.lexer.error;
 
 public class SyntaxException extends RuntimeException {
     public String source = null;

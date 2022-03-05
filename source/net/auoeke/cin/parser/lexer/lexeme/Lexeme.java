@@ -1,6 +1,6 @@
-package net.auoeke.cin.lexer.lexeme;
+package net.auoeke.cin.parser.lexer.lexeme;
 
-import net.auoeke.cin.lexer.error.SyntaxError;
+import net.auoeke.cin.parser.lexer.error.SyntaxError;
 
 public abstract class Lexeme implements CharSequence {
     public final int column;

@@ -1,5 +1,8 @@
-package net.auoeke.cin.lexer;
+package net.auoeke.cin.parser;
 
+import java.util.ArrayList;
+import java.util.List;
+import net.auoeke.cin.Cin;
 import net.auoeke.cin.element.ArrayElement;
 import net.auoeke.cin.element.BooleanElement;
 import net.auoeke.cin.element.Element;
@@ -11,16 +14,20 @@ import net.auoeke.cin.element.NullElement;
 import net.auoeke.cin.element.PairElement;
 import net.auoeke.cin.element.PrimitiveElement;
 import net.auoeke.cin.element.StringElement;
-import net.auoeke.cin.lexer.lexeme.Lexeme;
-import net.auoeke.cin.lexer.lexeme.StringLexeme;
-import net.auoeke.cin.lexer.lexeme.Token;
+import net.auoeke.cin.parser.lexer.lexeme.CommentLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.Lexeme;
+import net.auoeke.cin.parser.lexer.LexemeIterator;
+import net.auoeke.cin.parser.lexer.Lexer;
+import net.auoeke.cin.parser.lexer.lexeme.StringLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.Token;
 
 public class Parser {
+    private final List<CommentLexeme> comments = new ArrayList<>();
     private final LexemeIterator iterator;
     private Context context = Context.FILE;
     private Lexeme lexeme;
 
-    public Parser(String cin) {
+    public Parser(String cin, Cin.Option... options) {
         this.iterator = new Lexer(cin).iterator();
     }
 
@@ -236,7 +243,7 @@ public class Parser {
             }
 
             if (error) {
-                // todo: error: expected [\n,] or structure ending but found $lexeme
+                // todo: error: expected [\n,] or structure end but found $lexeme
             }
         }
 

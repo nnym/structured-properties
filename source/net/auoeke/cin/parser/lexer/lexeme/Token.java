@@ -1,17 +1,17 @@
-package net.auoeke.cin.lexer.lexeme;
+package net.auoeke.cin.parser.lexer.lexeme;
 
 public enum Token {
     NEWLINE('\n'),
     WHITESPACE(Character.MAX_VALUE),
     LINE_COMMENT(Character.MAX_VALUE),
     BLOCK_COMMENT(Character.MAX_VALUE),
+    STRING(Character.MAX_VALUE),
     COMMA(','),
+    MAPPING('='),
     ARRAY_BEGIN('['),
     ARRAY_END(']'),
     MAP_BEGIN('{'),
-    MAP_END('}'),
-    MAPPING('='),
-    STRING(Character.MAX_VALUE);
+    MAP_END('}');
 
     private final char character;
 

@@ -1,6 +1,6 @@
-package net.auoeke.cin.lexer;
+package net.auoeke.cin.parser;
 
-import net.auoeke.cin.lexer.lexeme.Token;
+import net.auoeke.cin.parser.lexer.lexeme.Token;
 
 public enum Context {
     FILE,

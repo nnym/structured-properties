@@ -1,7 +1,7 @@
-package net.auoeke.cin.lexer;
+package net.auoeke.cin.parser.lexer;
 
 import java.util.ListIterator;
-import net.auoeke.cin.lexer.lexeme.Lexeme;
+import net.auoeke.cin.parser.lexer.lexeme.Lexeme;
 
 public class LexemeIterator implements ListIterator<Lexeme> {
     private final int size;

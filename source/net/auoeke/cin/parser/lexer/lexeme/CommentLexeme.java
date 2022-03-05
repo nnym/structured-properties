@@ -1,20 +1,14 @@
-package net.auoeke.cin.lexer.lexeme;
-
-import net.auoeke.cin.lexer.error.SyntaxError;
+package net.auoeke.cin.parser.lexer.lexeme;
 
 public final class CommentLexeme extends Lexeme {
     public final String value;
     public final Token token;
 
-    public CommentLexeme(int line, int column, Token token, String value, SyntaxError error) {
-        super(line, column, error);
+    public CommentLexeme(int line, int column, Token token, String value) {
+        super(line, column, null);
 
         this.token = token;
         this.value = value;
-    }
-
-    public CommentLexeme(int line, int column, Token token, String value) {
-        this(line, column, token, value, null);
     }
 
     @Override public Token token() {
@@ -22,7 +16,7 @@ public final class CommentLexeme extends Lexeme {
     }
 
     @Override public String toString() {
-        return switch (this.token()) {
+        return switch (this.token) {
             case LINE_COMMENT -> "##" + this.value;
             case BLOCK_COMMENT -> "/*" + this.value + "*/";
             default -> throw new IllegalStateException(this.token.toString());

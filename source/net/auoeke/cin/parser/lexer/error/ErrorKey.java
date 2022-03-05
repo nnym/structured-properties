@@ -1,4 +1,4 @@
-package net.auoeke.cin.lexer.error;
+package net.auoeke.cin.parser.lexer.error;
 
 public enum ErrorKey {
     NO_SEPARATOR("%s: Expected a separator."),

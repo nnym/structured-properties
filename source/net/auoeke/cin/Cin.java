@@ -3,12 +3,12 @@ package net.auoeke.cin;
 import java.net.URL;
 import java.nio.file.Path;
 import net.auoeke.cin.element.Element;
-import net.auoeke.cin.lexer.Parser;
-import net.auoeke.cin.lexer.error.SyntaxException;
+import net.auoeke.cin.parser.Parser;
+import net.auoeke.cin.parser.lexer.error.SyntaxException;
 
 public class Cin {
-    public static Element parse(String cin) {
-        return new Parser(cin).parse();
+    public static Element parse(String cin, Option... options) {
+        return new Parser(cin, options).parse();
     }
 
     public static Element parse(byte[] cin) {
@@ -33,5 +33,9 @@ public class Cin {
 
             throw exception;
         }
+    }
+
+    public enum Option {
+        RETAIN_COMMENTS
     }
 }

@@ -10,8 +10,8 @@ public interface Element {
         INTEGER,
         FLOAT,
         STRING,
-        ARRAY,
         PAIR,
+        ARRAY,
         MAP;
 
         public boolean primitive() {
@@ -19,6 +19,10 @@ public interface Element {
                 case NULL, BOOLEAN, INTEGER, FLOAT, STRING -> true;
                 default -> false;
             };
+        }
+
+        public boolean structure() {
+            return this == ARRAY || this == MAP;
         }
     }
 }
