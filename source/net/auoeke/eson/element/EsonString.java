@@ -21,7 +21,7 @@ public class EsonString implements EsonPrimitive {
     }
 
     public String delimiter() {
-        if (this.raw && Pattern.compile("[]\\[{}\n,=]|##/*").matcher(this.value).find()) {
+        if (this.raw && Pattern.compile("[]\\[{}\n,=]|##|/*").matcher(this.value).find()) {
             var delimiter = this.delimiter(1);
 
             if (delimiter == null) {
