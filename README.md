@@ -13,15 +13,14 @@ and possibly a leading or trailing radix point.
   - `1e6`
 - A **string** is either
   - a sequence of characters that are not reserved for other tokens that is terminated by a newline or comma or
-    - `hello word`
-    - `//# This is still a string. :^)`
+    - `//# Quotation marks (") and apostrophes (') are included. :^)`
   - a sequence of characters delimited by `'`, `"` or a string of any number thereof >= 3.
-    - `"Can't touch this".`
-    - `'Can touch "this"'.`
+    - `"quoted string"`
+    - `'apostrophed string'`
     - ```
       """
       public static void main(String... args) {
-          System.out.println("");
+          System.out.println("There's no escaping the quotation marks.");
       }
       """
       ```
