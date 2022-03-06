@@ -1,7 +1,5 @@
 package net.auoeke.eson.parser.lexer;
 
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -25,12 +23,12 @@ import net.auoeke.eson.parser.lexer.lexeme.WhitespaceLexeme;
 
 public class Lexer {
     private final String eson;
-    private final StringCharacterIterator iterator;
     private final List<Lexeme> lexemes = new ArrayList<>();
     private final boolean retainComments;
     private final boolean retainSource;
     private final boolean throwExceptions;
 
+    private int nextIndex;
     private int line = 1;
     private int column = 0;
     private int savedLine = -1;
@@ -41,7 +39,6 @@ public class Lexer {
 
     public Lexer(String eson, boolean retainSource, boolean throwExceptions, Eson.Option... options) {
         this.eson = eson;
-        this.iterator = new StringCharacterIterator(eson);
 
         var optionSet = new HashSet<>(Arrays.asList(options));
         this.retainComments = optionSet.contains(Eson.Option.RETAIN_COMMENTS);
@@ -66,15 +63,11 @@ public class Lexer {
     }
 
     private int previousIndex() {
-        return this.iterator.getIndex() - 1;
-    }
-
-    private int nextIndex() {
-        return this.iterator.getIndex();
+        return this.nextIndex - 1;
     }
 
     private char next() {
-        this.current = this.iterator.current();
+        this.current = this.eson.charAt(this.nextIndex++);
 
         if (this.current == '\n') {
             this.line++;
@@ -83,20 +76,21 @@ public class Lexer {
 
         this.column++;
 
-        var next = this.nextIndex() + 1;
-        if (next <= this.eson.length()) {
-            this.iterator.setIndex(next);
-        }
-
         return this.current;
     }
 
     private boolean advance() {
-        return this.next() != CharacterIterator.DONE;
+        if (this.nextIndex < this.eson.length()) {
+            this.next();
+
+            return true;
+        }
+
+        return false;
     }
 
     private char previous() {
-        var previous = this.iterator.previous();
+        var previous = this.eson.charAt(--this.nextIndex);
 
         if (previous == '\n') {
             this.line--;
@@ -107,13 +101,9 @@ public class Lexer {
         return previous;
     }
 
-    private char peek() {
-        return this.peek(1);
-    }
-
     private boolean peek(String expected) {
         for (var index = 0; index < expected.length(); index++) {
-            if (this.peek(index) != expected.charAt(index)) {
+            if (index >= this.eson.length() || this.eson.charAt(this.previousIndex() + index) != expected.charAt(index)) {
                 return false;
             }
         }
@@ -121,13 +111,8 @@ public class Lexer {
         return true;
     }
 
-    private char peek(int distance) {
-        var index = this.previousIndex() + distance;
-        return index >= this.eson.length() ? CharacterIterator.DONE : this.eson.charAt(index);
-    }
-
     private void index(int index) {
-        this.iterator.setIndex(index + 1);
+        this.nextIndex = index + 1;
         this.current = this.eson.charAt(index);
     }
 
@@ -418,11 +403,7 @@ public class Lexer {
     }
 
     private boolean shouldTerminateExpression() {
-        return contains("\n,={}[]", this.current) || switch (this.current) {
-            case '#' -> this.peek() == '#';
-            case '/' -> this.peek() == '*';
-            default -> false;
-        };
+        return contains("\n,={}[]", this.current) || this.peek("##") || this.peek("/*");
     }
 
     private static String buildString(Consumer<StringBuilder> builder) {
