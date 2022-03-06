@@ -1,5 +1,5 @@
 package net.auoeke.eson.element;
 
-public interface PrimitiveElement extends Element {
+public interface EsonPrimitive extends EsonElement {
     String stringValue();
 }

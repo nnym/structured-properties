@@ -3,18 +3,18 @@ package net.auoeke.eson.element;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class MapElement extends LinkedHashMap<String, Element> implements Element {
-    public MapElement() {}
+public class EsonMap extends LinkedHashMap<String, EsonElement> implements EsonElement {
+    public EsonMap() {}
 
-    public MapElement(int initialCapacity, float loadFactor) {
+    public EsonMap(int initialCapacity, float loadFactor) {
         super(initialCapacity, loadFactor);
     }
 
-    public MapElement(int initialCapacity) {
+    public EsonMap(int initialCapacity) {
         super(initialCapacity);
     }
 
-    public MapElement(Map<? extends String, ? extends Element> source) {
+    public EsonMap(Map<? extends String, ? extends EsonElement> source) {
         super(source);
     }
 
@@ -22,8 +22,8 @@ public class MapElement extends LinkedHashMap<String, Element> implements Elemen
         return Type.MAP;
     }
 
-    @Override public MapElement clone() {
-        return new MapElement(this);
+    @Override public EsonMap clone() {
+        return new EsonMap(this);
     }
 
     @Override public String toString() {
@@ -38,7 +38,7 @@ public class MapElement extends LinkedHashMap<String, Element> implements Elemen
         };
     }
 
-    private String format(String key, Element value) {
+    private String format(String key, EsonElement value) {
         return switch (value.type()) {
             case ARRAY, MAP -> key + ' ' + value;
             default -> key + " = " + value;

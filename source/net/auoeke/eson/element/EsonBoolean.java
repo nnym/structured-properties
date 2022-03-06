@@ -1,25 +1,25 @@
 package net.auoeke.eson.element;
 
-public class BooleanElement implements Element {
-    private static final BooleanElement tru = new BooleanElement(true);
-    private static final BooleanElement fals = new BooleanElement(false);
+public class EsonBoolean implements EsonElement {
+    private static final EsonBoolean tru = new EsonBoolean(true);
+    private static final EsonBoolean fals = new EsonBoolean(false);
 
     public boolean value;
 
-    private BooleanElement(boolean value) {
+    private EsonBoolean(boolean value) {
         this.value = value;
     }
 
-    public static BooleanElement of(boolean value) {
+    public static EsonBoolean of(boolean value) {
         return value ? tru : fals;
     }
 
     @Override public Type type() {
-        return Element.Type.BOOLEAN;
+        return EsonElement.Type.BOOLEAN;
     }
 
     @Override public boolean equals(Object other) {
-        return other instanceof BooleanElement bool && this.value == bool.value;
+        return other instanceof EsonBoolean bool && this.value == bool.value;
     }
 
     @Override public int hashCode() {

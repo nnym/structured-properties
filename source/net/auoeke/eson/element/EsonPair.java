@@ -2,18 +2,18 @@ package net.auoeke.eson.element;
 
 import java.util.Objects;
 
-public class PairElement implements Element {
-    public Element a;
-    public Element b;
+public class EsonPair implements EsonElement {
+    public EsonElement a;
+    public EsonElement b;
 
-    public PairElement(Element a, Element b) {
+    public EsonPair(EsonElement a, EsonElement b) {
         this.a = a;
         this.b = b;
     }
 
-    public MapElement map() {
-        if (this.a instanceof PrimitiveElement primitive) {
-            var map = new MapElement();
+    public EsonMap map() {
+        if (this.a instanceof EsonPrimitive primitive) {
+            var map = new EsonMap();
             map.put(primitive.stringValue(), this.b);
 
             return map;
@@ -31,10 +31,10 @@ public class PairElement implements Element {
     }
 
     @Override public boolean equals(Object object) {
-        return object instanceof PairElement pair && Objects.equals(this.a, pair.a) && Objects.equals(this.b, pair.b);
+        return object instanceof EsonPair pair && Objects.equals(this.a, pair.a) && Objects.equals(this.b, pair.b);
     }
 
     @Override public String toString() {
-        return this.a instanceof PrimitiveElement && this.b.type().structure() ? this.a + " " + this.b : this.a + " = " + this.b;
+        return this.a instanceof EsonPrimitive && this.b.type().structure() ? this.a + " " + this.b : this.a + " = " + this.b;
     }
 }

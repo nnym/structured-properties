@@ -1,35 +1,40 @@
 package net.auoeke.eson.element;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 
-public class IntegerElement extends NumberElement {
-    private BigInteger value;
+public class EsonFloat extends EsonNumber {
+    private BigDecimal value;
     private boolean raw;
 
-    public IntegerElement(String source, BigInteger value) {
+    public EsonFloat(String source, BigDecimal value) {
         super(source);
 
         this.value = value;
     }
 
-    public IntegerElement(BigInteger value) {
-        super(value.toString());
-
-        this.value = value;
-    }
-
-    public IntegerElement(String value) {
+    public EsonFloat(String value) {
         super(value);
 
         this.raw = true;
     }
 
-    public BigInteger value() {
-        return this.raw ? this.value = new BigInteger(this.source) : this.value;
+    public EsonFloat(BigDecimal value) {
+        super(value.toString());
+
+        this.value = value;
+    }
+
+    public BigDecimal value() {
+        if (this.raw) {
+            this.value = new BigDecimal(this.source);
+            this.raw = false;
+        }
+
+        return this.value;
     }
 
     @Override public Type type() {
-        return Type.INTEGER;
+        return Type.FLOAT;
     }
 
     @Override public int intValue() {
@@ -57,10 +62,10 @@ public class IntegerElement extends NumberElement {
     }
 
     @Override public int hashCode() {
-        return this.value.hashCode();
+        return this.value().hashCode();
     }
 
     @Override public boolean equals(Object other) {
-        return other instanceof IntegerElement integer && this.value().equals(integer.value());
+        return other instanceof EsonFloat flote && this.value().equals(flote.value());
     }
 }

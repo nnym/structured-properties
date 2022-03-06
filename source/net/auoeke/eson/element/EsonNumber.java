@@ -1,9 +1,9 @@
 package net.auoeke.eson.element;
 
-public abstract class NumberElement extends Number implements PrimitiveElement {
+public abstract class EsonNumber extends Number implements EsonPrimitive {
     protected final String source;
 
-    public NumberElement(String source) {
+    public EsonNumber(String source) {
         this.source = source;
     }
 

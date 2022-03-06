@@ -1,9 +1,9 @@
 package net.auoeke.eson.element;
 
-public final class EmptyElement implements Element {
-    public static final EmptyElement instance = new EmptyElement();
+public final class EsonEmpty implements EsonElement {
+    public static final EsonEmpty instance = new EsonEmpty();
 
-    private EmptyElement() {}
+    private EsonEmpty() {}
 
     @Override public Type type() {
         return Type.EMPTY;

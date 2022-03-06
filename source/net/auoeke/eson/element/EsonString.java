@@ -3,18 +3,18 @@ package net.auoeke.eson.element;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-public class StringElement implements PrimitiveElement {
+public class EsonString implements EsonPrimitive {
     public final String value;
 
     private String delimiter;
     private boolean raw;
 
-    public StringElement(String value, String delimiter) {
+    public EsonString(String value, String delimiter) {
         this.value = Objects.requireNonNull(value);
         this.delimiter = delimiter;
     }
 
-    public StringElement(String value) {
+    public EsonString(String value) {
         this(value, null);
 
         this.raw = true;
@@ -42,7 +42,7 @@ public class StringElement implements PrimitiveElement {
     }
 
     @Override public Type type() {
-        return Element.Type.STRING;
+        return EsonElement.Type.STRING;
     }
 
     @Override public int hashCode() {
@@ -50,7 +50,7 @@ public class StringElement implements PrimitiveElement {
     }
 
     @Override public boolean equals(Object other) {
-        return other instanceof StringElement string && this.value.equals(string.value) && Objects.equals(this.delimiter, string.delimiter);
+        return other instanceof EsonString string && this.value.equals(string.value) && Objects.equals(this.delimiter, string.delimiter);
     }
 
     @Override public String toString() {

@@ -1,6 +1,6 @@
 package net.auoeke.eson.element;
 
-public interface Element {
+public interface EsonElement {
     Type type();
 
     enum Type {
