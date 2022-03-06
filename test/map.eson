@@ -1,13 +1,19 @@
-key #0 = value #0
-java.io.tmpdir = /tmp
+java.home = /usr/lib/jvm/j8-17
+user.dir = .
 
-map {
-    name = hello
+home page = https://example.net
+
+some properties {
+    name = test
     address = 3 test street
 
-    array [thing 1, thing 2]
+    array [
+        We don't normally quote around here...
+        "... except when we need
+         a multiline string."
+    ]
 
-    map2 {}
+    nesting {}
 }
 
-array [one two, 3, "4", '5', true = false, {key = value}, [nesting]]
+array [3, "4", '5', true = false, {key = value}, [nesting]]
