@@ -13,10 +13,11 @@ and possibly a leading or trailing radix point.
   - `1e6`
 - A **string** is either
   - a sequence of characters that are not reserved for other tokens that is terminated by a newline or comma or
-    - `//# Quotation marks (") and apostrophes (') are included. :^)`
-  - a sequence of characters delimited by `'`, `"` or a string of any number thereof >= 3.
+    - <code>//# Quotation marks ("), apostrophes (') and backticks (`) are included. :^)</code>
+  - a sequence of characters delimited by `"`, `'`, <code>`</code> or a string of any number >= 3 thereof.
     - `"quoted string"`
     - `'apostrophed string'`
+    - <code>\`backticked string\`</code>
     - ```
       """
       public static void main(String... args) {
