@@ -14,7 +14,7 @@ and possibly a leading or trailing radix point.
 - A **string** is either
   - a sequence of characters that are not reserved for other tokens that is terminated by a newline or comma or
     - `hello word`
-    - `//# This is still a string. :)`
+    - `//# This is still a string. :^)`
   - a sequence of characters delimited by `'`, `"` or a string of any number thereof >= 3.
     - `"Can't touch this".`
     - `'Can touch "this"'.`
