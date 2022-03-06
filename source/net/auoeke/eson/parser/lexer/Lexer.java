@@ -7,9 +7,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.IntPredicate;
 import java.util.stream.IntStream;
 import net.auoeke.eson.Eson;
+import net.auoeke.eson.parser.Context;
+import net.auoeke.eson.parser.lexer.error.ErrorKey;
+import net.auoeke.eson.parser.lexer.error.SyntaxError;
+import net.auoeke.eson.parser.lexer.error.SyntaxException;
 import net.auoeke.eson.parser.lexer.lexeme.CommaLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.CommentLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.DelimiterLexeme;
@@ -19,10 +22,6 @@ import net.auoeke.eson.parser.lexer.lexeme.NewlineLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.StringLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.Token;
 import net.auoeke.eson.parser.lexer.lexeme.WhitespaceLexeme;
-import net.auoeke.eson.parser.Context;
-import net.auoeke.eson.parser.lexer.error.ErrorKey;
-import net.auoeke.eson.parser.lexer.error.SyntaxError;
-import net.auoeke.eson.parser.lexer.error.SyntaxException;
 
 public class Lexer {
     private final String eson;
@@ -149,12 +148,12 @@ public class Lexer {
         return true;
     }
 
-    private void requireNext(ErrorKey error, IntPredicate predicate) {
+    private void requireNext(ErrorKey error, String set) {
         while (this.advance()) {
             this.savePosition();
 
             if (!this.whitespaceOrComment()) {
-                if (predicate.test(this.current)) {
+                if (contains(set, this.current)) {
                     this.process();
                     return;
                 }
@@ -216,7 +215,7 @@ public class Lexer {
             this.scanExpression(key);
 
             if (key) {
-                this.requireNext(ErrorKey.NO_MAPPING, next -> contains("={[", next));
+                this.requireNext(ErrorKey.NO_MAPPING, "={[");
             } else {
                 while (this.advance()) {
                     if (this.shouldTerminateExpression()) {
@@ -444,7 +443,7 @@ public class Lexer {
     }
 
     private boolean shouldTerminateExpression() {
-        return contains("\n={}[],", this.current) || switch (this.current) {
+        return contains("\n,={}[]", this.current) || switch (this.current) {
             case '#' -> this.peek() == '#';
             case '/' -> this.peek() == '*';
             default -> false;
