@@ -1,17 +1,19 @@
 package net.auoeke.cin.element;
 
+import java.math.BigInteger;
+
 public class IntegerElement extends NumberElement {
-    private long value;
+    private BigInteger value;
     private boolean raw;
 
-    public IntegerElement(String source, long value) {
+    public IntegerElement(String source, BigInteger value) {
         super(source);
 
         this.value = value;
     }
 
-    public IntegerElement(long value) {
-        super(Long.toString(value));
+    public IntegerElement(BigInteger value) {
+        super(value.toString());
 
         this.value = value;
     }
@@ -22,8 +24,8 @@ public class IntegerElement extends NumberElement {
         this.raw = true;
     }
 
-    public double value() {
-        return this.raw ? this.value = Long.parseLong(this.source) : this.value;
+    public BigInteger value() {
+        return this.raw ? this.value = new BigInteger(this.source) : this.value;
     }
 
     @Override public Type type() {
@@ -31,34 +33,34 @@ public class IntegerElement extends NumberElement {
     }
 
     @Override public int intValue() {
-        return (int) this.value;
+        return this.value().intValue();
     }
 
     @Override public long longValue() {
-        return this.value;
+        return this.value().longValue();
     }
 
     @Override public float floatValue() {
-        return this.value;
+        return this.value().floatValue();
     }
 
     @Override public double doubleValue() {
-        return this.value;
+        return this.value().doubleValue();
     }
 
     @Override public byte byteValue() {
-        return (byte) this.value;
+        return this.value().byteValue();
     }
 
     @Override public short shortValue() {
-        return (short) this.value;
+        return this.value().shortValue();
     }
 
     @Override public int hashCode() {
-        return Long.hashCode(this.value);
+        return this.value.hashCode();
     }
 
     @Override public boolean equals(Object other) {
-        return other instanceof IntegerElement integer && this.value == integer.value;
+        return other instanceof IntegerElement integer && this.value().equals(integer.value());
     }
 }

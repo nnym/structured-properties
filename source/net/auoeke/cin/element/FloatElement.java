@@ -1,10 +1,12 @@
 package net.auoeke.cin.element;
 
+import java.math.BigDecimal;
+
 public class FloatElement extends NumberElement {
-    private double value;
+    private BigDecimal value;
     private boolean raw;
 
-    public FloatElement(String source, double value) {
+    public FloatElement(String source, BigDecimal value) {
         super(source);
 
         this.value = value;
@@ -16,15 +18,15 @@ public class FloatElement extends NumberElement {
         this.raw = true;
     }
 
-    public FloatElement(double value) {
-        super(Double.toString(value));
+    public FloatElement(BigDecimal value) {
+        super(value.toString());
 
         this.value = value;
     }
 
-    public double value() {
+    public BigDecimal value() {
         if (this.raw) {
-            this.value = Double.parseDouble(this.source);
+            this.value = new BigDecimal(this.source);
             this.raw = false;
         }
 
@@ -36,34 +38,34 @@ public class FloatElement extends NumberElement {
     }
 
     @Override public int intValue() {
-        return (int) this.value();
+        return this.value().intValue();
     }
 
     @Override public long longValue() {
-        return (long) this.value();
+        return this.value().longValue();
     }
 
     @Override public float floatValue() {
-        return (float) this.value();
+        return this.value().floatValue();
     }
 
     @Override public double doubleValue() {
-        return this.value();
+        return this.value().doubleValue();
     }
 
     @Override public byte byteValue() {
-        return (byte) this.value();
+        return this.value().byteValue();
     }
 
     @Override public short shortValue() {
-        return (short) this.value();
+        return this.value().shortValue();
     }
 
     @Override public int hashCode() {
-        return Double.hashCode(this.value());
+        return this.value().hashCode();
     }
 
     @Override public boolean equals(Object other) {
-        return other instanceof FloatElement flote && this.value() == flote.value();
+        return other instanceof FloatElement flote && this.value().equals(flote.value());
     }
 }

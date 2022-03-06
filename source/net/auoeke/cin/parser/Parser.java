@@ -1,5 +1,7 @@
 package net.auoeke.cin.parser;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import net.auoeke.cin.Cin;
@@ -14,10 +16,10 @@ import net.auoeke.cin.element.NullElement;
 import net.auoeke.cin.element.PairElement;
 import net.auoeke.cin.element.PrimitiveElement;
 import net.auoeke.cin.element.StringElement;
-import net.auoeke.cin.parser.lexer.lexeme.CommentLexeme;
-import net.auoeke.cin.parser.lexer.lexeme.Lexeme;
 import net.auoeke.cin.parser.lexer.LexemeIterator;
 import net.auoeke.cin.parser.lexer.Lexer;
+import net.auoeke.cin.parser.lexer.lexeme.CommentLexeme;
+import net.auoeke.cin.parser.lexer.lexeme.Lexeme;
 import net.auoeke.cin.parser.lexer.lexeme.StringLexeme;
 import net.auoeke.cin.parser.lexer.lexeme.Token;
 
@@ -127,10 +129,10 @@ public class Parser {
                     case "null" -> NullElement.instance;
                     default -> {
                         try {
-                            yield new IntegerElement(string.value, Long.parseLong(string.value));
+                            yield new IntegerElement(string.value, new BigInteger(string.value));
                         } catch (NumberFormatException exception) {
                             try {
-                                yield new FloatElement(string.value, Double.parseDouble(string.value));
+                                yield new FloatElement(string.value, new BigDecimal(string.value));
                             } catch (NumberFormatException e) {
                                 yield new StringElement(string.value, string.delimiter);
                             }

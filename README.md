@@ -1,14 +1,15 @@
 ### Primitive elements
 - A **null** element indicates an absence of a value and is represented as `null`.
 - A **Boolean** element is represented as `true` or `false`.
-- An **integer** is a string of digits with minimum value [Long.MIN_VALUE], maximum value [Long.MAX_VALUE]
-and optional preceding `[+-]`.
-  - `21474836480`
+- An **integer** is a decimal integer.
+  - `92233720368547758070`
   - `-12`
   - `+3`
-- A **float** is a floating point number as specified at [`Double::valueOf`](https://docs.oracle.com/javase/8/docs/api/java/lang/Double.html#valueOf-java.lang.String-).
-  - `1.0`
-  - `-123.0D`
+- A **float** is a decimal rational number with optional order of magnitude
+and possibly a leading or trailing radix point.
+  - `3.141592653589793238462643383279502884197169399`
+  - `.0`
+  - `-123.`
   - `1e6`
 - A **string** is either
   - a sequence of characters that are not reserved for other tokens that is terminated by a newline or comma or
@@ -32,7 +33,7 @@ and optional preceding `[+-]`.
   - `times {start = 8:00, end = 13:00}`.
 - An **array** is a sequence of elements separated by `\n` or `,` and enclosed in `[]`.
   - `[string, true]`
-- A **map** is a sequence of pairs whose left elements are primitive separated by `\n` or `,` and enclosed in `{}`.
+- A **map** is a sequence of pairs separated by `\n` or `,` whose left elements are primitive and enclosed in `{}`.
   - `{key = value}`
   - `{pocket [wallet, phone]}`
 
@@ -50,7 +51,7 @@ question = Remember properties?
 ```
 ```
 ## This file represents a pair.
-key = value
+autosave interval = 5
 ## Adding another element here would produce a map.
 ```
 
@@ -60,6 +61,5 @@ key = value
 - A **block comment** starts with `/*`, is terminated by `*/` and can be nested.
   - ```
     /* /* nest */
-    The comment continues.
-    */
+    The comment continues. */
     ```
