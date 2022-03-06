@@ -30,7 +30,7 @@ and possibly a leading or trailing radix point.
 - A **pair** comprises 2 elements joined by `=` or a primitive element followed by a structure (array or map).
   - `1.0 = 1`
   - `pocket [wallet, phone]`
-  - `times {start = 8:00, end = 13:00}`.
+  - `times {start = 8:00, end = 13:00}`
 - An **array** is a sequence of elements separated by `\n` or `,` and enclosed in `[]`.
   - `[string, true]`
   - ```
