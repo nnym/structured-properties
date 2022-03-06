@@ -15,7 +15,7 @@ gronk {
 
 sourceSets {
     test {
-        resources.srcDir("test/cin")
+        resources.srcDir("test")
     }
 }
 

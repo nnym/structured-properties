@@ -1,0 +1,49 @@
+/* regex pseudogrammar
+CHARACTER: [^]\[{}=\s,]
+DELIMITER: ["'] | ["']{3,}
+SEPARATOR: [\n,]
+ELEMENT: NULL | BOOLEAN | INTEGER | FLOAT | STRING | PAIR | ARRAY | MAP
+
+INTEGER: \d+
+FLOAT: \d+\.\d+
+BOOLEAN: "false" | "true"
+NULL: "null"
+STRING: (?s) DELIMITER .* DELIMITER | CHARACTER ([\s[^\n]]* CHARACTER)*
+PAIR: ELEMENT [:=] ELEMENT | STRING (MAP | ARRAY)
+KEY_PAIR: STRING ([:=] ELEMENT | MAP | ARRAY)
+ARRAY: "[" ELEMENT? (SEPARATOR ELEMENT)* "]"
+MAP: "{" PAIR? (SEPARATOR KEY_PAIR)* "}"
+
+FILE: ELEMENT (SEPARATOR ELEMENT)* | PAIR (SEPARATOR PAIR)*
+*/
+
+/* an example /* nested */ comment */
+
+buildscript {
+    dependencies {
+        classpath = [net.example:old-gradle-plugin:1.2.3]
+    }
+}
+
+name = eson
+version = 1.2.3
+description = '
+    "eson" is an acronym as defined below.
+    elegant
+    structured
+    object
+    notation
+
+    eson is intended to be a human-readable and human-writable alternative to popular serialization languages like JSON.
+'
+
+repositories [
+    mavenCentral
+    ~/.m2/repository ## the local repository
+    https://repo.maven.apache.org/maven2/
+]
+
+dependencies {
+    implementation = [gradleApi, org.ow2.asm:asm:9.0-SNAPSHOT]
+    testImplementation = org.junit.jupiter:junit-jupiter:5.8.0
+}
