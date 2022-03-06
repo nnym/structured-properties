@@ -1,7 +1,5 @@
 /* regex pseudogrammar
-CHARACTER: [^]\[{}=\s,]
-DELIMITER: ["'] | ["']{3,}
-SEPARATOR: [\n,]
+FILE: ELEMENT (SEPARATOR ELEMENT)* | PAIR (SEPARATOR PAIR)*
 ELEMENT: NULL | BOOLEAN | INTEGER | FLOAT | STRING | PAIR | ARRAY | MAP
 
 INTEGER: \d+
@@ -14,7 +12,9 @@ KEY_PAIR: STRING ([:=] ELEMENT | MAP | ARRAY)
 ARRAY: "[" ELEMENT? (SEPARATOR ELEMENT)* "]"
 MAP: "{" PAIR? (SEPARATOR KEY_PAIR)* "}"
 
-FILE: ELEMENT (SEPARATOR ELEMENT)* | PAIR (SEPARATOR PAIR)*
+CHARACTER: [^]\[{}=\s,]
+DELIMITER: ["'] | ["']{3,}
+SEPARATOR: [\n,]
 */
 
 /* an example /* nested */ comment */
