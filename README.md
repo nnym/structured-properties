@@ -33,9 +33,20 @@ and possibly a leading or trailing radix point.
   - `times {start = 8:00, end = 13:00}`.
 - An **array** is a sequence of elements separated by `\n` or `,` and enclosed in `[]`.
   - `[string, true]`
+  - ```
+    [
+        element 0
+        element 1
+    ]
+    ```
 - A **map** is a sequence of pairs separated by `\n` or `,` whose left elements are primitive and enclosed in `{}`.
-  - `{key = value}`
-  - `{pocket [wallet, phone]}`
+  - `{key 0 = value 0, key 1 = value 1}`
+  - ```
+    {
+        color = dark gray
+        pocket [wallet, phone]
+    }
+    ```
 
 Sole top-level structures' delimiters can be omitted:
 ```
