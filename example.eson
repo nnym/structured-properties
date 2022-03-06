@@ -13,7 +13,7 @@ ARRAY: "[" ELEMENT? (SEPARATOR ELEMENT)* "]"
 MAP: "{" PAIR? (SEPARATOR KEY_PAIR)* "}"
 
 CHARACTER: [^]\[{}=\s,]
-DELIMITER: ["'] | ["']{3,}
+DELIMITER: ["'`] | ["'`]{3,}
 SEPARATOR: [\n,]
 */
 
