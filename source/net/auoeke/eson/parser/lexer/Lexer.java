@@ -148,23 +148,6 @@ public class Lexer {
         return true;
     }
 
-    private void requireNext(ErrorKey error, String set) {
-        while (this.advance()) {
-            this.savePosition();
-
-            if (!this.whitespaceOrComment()) {
-                if (contains(set, this.current)) {
-                    this.process();
-                    return;
-                }
-
-                break;
-            }
-        }
-
-        this.error(error);
-    }
-
     private void requireClose(Token character, ErrorKey error) {
         var position = this.position();
 
@@ -198,8 +181,8 @@ public class Lexer {
         return false;
     }
 
-    private void scanExpression(boolean key) {
-        if (!key && contains("{}[]", this.current)) {
+    private void scanExpression() {
+        if (contains("{}[]", this.current)) {
             this.structure(this.current);
         } else if (contains("\"'`", this.current)) {
             this.string(this.current);
@@ -208,33 +191,25 @@ public class Lexer {
         }
     }
 
-    private void process(boolean key) {
+    private void process() {
         this.savePosition();
 
         if (!this.whitespaceOrComment() && !this.comma(this.current) && !this.mapping(this.current)) {
-            this.scanExpression(key);
+            this.scanExpression();
 
-            if (key) {
-                this.requireNext(ErrorKey.NO_MAPPING, "={[");
-            } else {
-                while (this.advance()) {
-                    if (this.shouldTerminateExpression()) {
-                        this.previous();
-                        return;
-                    }
+            while (this.advance()) {
+                if (this.shouldTerminateExpression()) {
+                    this.previous();
+                    return;
+                }
 
-                    if (Character.isWhitespace(this.current)) {
-                        this.whitespace(this.current);
-                    } else {
-                        this.error(ErrorKey.NO_SEPARATOR);
-                    }
+                if (Character.isWhitespace(this.current)) {
+                    this.whitespace(this.current);
+                } else {
+                    this.error(ErrorKey.NO_SEPARATOR);
                 }
             }
         }
-    }
-
-    private void process() {
-        this.process(false);
     }
 
     private void add(Lexeme lexeme) {
