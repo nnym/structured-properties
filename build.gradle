@@ -4,7 +4,7 @@ plugins {
     id("gronk").version("latest.release")
 }
 
-group("auoeke")
+group("net.auoeke")
 version("0.0.0")
 
 javaVersion(17)
@@ -31,4 +31,13 @@ dependencies {
 
 test {
     useJUnitPlatform()
+}
+
+publishing {
+    repositories {
+        maven("maven.auoeke.net") {
+            username(systemProperty("maven.username"))
+            password(systemProperty("maven.password"))
+        }
+    }
 }
