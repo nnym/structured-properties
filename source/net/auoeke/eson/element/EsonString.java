@@ -4,6 +4,8 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 
 public class EsonString implements EsonPrimitive {
+    private static final Pattern terminator = Pattern.compile("[]\\[{}\n,=]|##|/*");
+
     public final String value;
 
     private String delimiter;
@@ -21,7 +23,7 @@ public class EsonString implements EsonPrimitive {
     }
 
     public String delimiter() {
-        if (this.raw && Pattern.compile("[]\\[{}\n,=]|##|/*").matcher(this.value).find()) {
+        if (this.raw && terminator.matcher(this.value).find()) {
             var delimiter = this.delimiter(1);
 
             if (delimiter == null) {
@@ -42,7 +44,7 @@ public class EsonString implements EsonPrimitive {
     }
 
     @Override public Type type() {
-        return EsonElement.Type.STRING;
+        return Type.STRING;
     }
 
     @Override public int hashCode() {
@@ -50,7 +52,7 @@ public class EsonString implements EsonPrimitive {
     }
 
     @Override public boolean equals(Object other) {
-        return other instanceof EsonString string && this.value.equals(string.value) && Objects.equals(this.delimiter, string.delimiter);
+        return other instanceof EsonString string && this.value.equals(string.value) && Objects.equals(this.delimiter(), string.delimiter());
     }
 
     @Override public String toString() {
@@ -60,15 +62,10 @@ public class EsonString implements EsonPrimitive {
 
     private String delimiter(int length) {
         var delimiter = "\"".repeat(length);
-
-        if (!this.value.contains(delimiter)) {
-            return delimiter;
-        }
-
-        if (!this.value.contains(delimiter = "'".repeat(length))) {
-            return delimiter;
-        }
-
-        return null;
+        return this.value.startsWith(delimiter)
+               && this.value.startsWith(delimiter = "'".repeat(length))
+               && this.value.startsWith(delimiter = "`".repeat(length))
+            ? null
+            : delimiter;
     }
 }
