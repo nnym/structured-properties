@@ -16,7 +16,7 @@ public class Eson {
     }
 
     public static EsonElement parseResource(URL eson) {
-        return parseResource(eson, eson.toString());
+        return parseResource(eson, "file".equals(eson.getProtocol()) ? eson.getPath() : eson.toString());
     }
 
     public static EsonElement parseResource(Path eson) {
