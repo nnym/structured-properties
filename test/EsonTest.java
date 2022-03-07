@@ -9,9 +9,9 @@ class EsonTest {
     @Test
     void test() {
         var loader = this.getClass().getClassLoader();
-        var string = Eson.parse(loader.getResourceAsStream("string.eson").readAllBytes());
-        var array = Eson.parse(loader.getResourceAsStream("array.eson").readAllBytes());
-        var map = Eson.parse(loader.getResourceAsStream("map.eson").readAllBytes());
+        var string = Eson.parseResource(loader.getResource("string.eson"));
+        var array = Eson.parseResource(loader.getResource("array.eson"));
+        var map = Eson.parseResource(loader.getResource("map.eson"));
         var example = Eson.parseResource(Path.of("example.eson"));
 
         var bp = true;
