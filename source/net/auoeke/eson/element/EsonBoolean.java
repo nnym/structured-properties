@@ -15,7 +15,7 @@ public class EsonBoolean implements EsonElement {
     }
 
     @Override public Type type() {
-        return EsonElement.Type.BOOLEAN;
+        return Type.BOOLEAN;
     }
 
     @Override public boolean equals(Object other) {

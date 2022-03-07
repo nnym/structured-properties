@@ -15,7 +15,7 @@ public class EsonArray extends ArrayList<EsonElement> implements EsonElement {
     }
 
     @Override public Type type() {
-        return EsonElement.Type.ARRAY;
+        return Type.ARRAY;
     }
 
     @Override public EsonArray clone() {

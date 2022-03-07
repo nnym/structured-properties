@@ -6,7 +6,7 @@ public final class EsonNull implements EsonElement {
     private EsonNull() {}
 
     @Override public Type type() {
-        return EsonElement.Type.NULL;
+        return Type.NULL;
     }
 
     @Override public String toString() {
