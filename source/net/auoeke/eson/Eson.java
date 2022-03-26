@@ -217,7 +217,13 @@ public class Eson {
             .map(this.hierarchySerializers::get)
             .filter(Objects::nonNull)
             .findFirst()
-            .orElseGet(() -> type.isArray() ? Classes.cast(new ArrayAdapter(type.componentType())) : null)
+            .orElseGet(() -> Classes.cast(
+                // @formatter:off
+                type.isArray() ? new ArrayAdapter(type.componentType())
+                : type.isEnum() ? new EnumAdapter(type)
+                : null
+                // @formatter:on
+            ))
         );
     }
 

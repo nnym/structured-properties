@@ -1,3 +1,4 @@
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ public class Stuff {
         "square", new int[]{0, 1, 4, 9, 16, 25, 36, 49, 64, 81, 100, 121, 144}
     );
     public Secret anonymousObject = new Secret();
+    public RetentionPolicy policy = RetentionPolicy.RUNTIME;
 
     private static class Secret {
         private String secretStuff = "e1b5b8939d7d77a24e200fcdce367d2a73f801d8678208e3096d4d5136ff4c19";
