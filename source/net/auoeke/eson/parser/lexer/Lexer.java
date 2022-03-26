@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
-import net.auoeke.eson.Eson;
 import net.auoeke.eson.parser.Context;
 import net.auoeke.eson.parser.lexer.error.ErrorKey;
 import net.auoeke.eson.parser.lexer.error.SyntaxError;
@@ -19,6 +18,7 @@ import net.auoeke.eson.parser.lexer.lexeme.NewlineLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.StringLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.Token;
 import net.auoeke.eson.parser.lexer.lexeme.WhitespaceLexeme;
+import net.auoeke.eson.Eson;
 
 public class Lexer {
     private static final String STRING_DELIMITERS = "\"'`";

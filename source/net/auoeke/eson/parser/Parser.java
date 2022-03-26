@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import net.auoeke.eson.Eson;
 import net.auoeke.eson.element.EsonArray;
 import net.auoeke.eson.element.EsonBoolean;
 import net.auoeke.eson.element.EsonElement;
@@ -21,6 +20,7 @@ import net.auoeke.eson.parser.lexer.lexeme.CommentLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.Lexeme;
 import net.auoeke.eson.parser.lexer.lexeme.StringLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.Token;
+import net.auoeke.eson.Eson;
 
 public class Parser {
     private final List<CommentLexeme> comments = new ArrayList<>();

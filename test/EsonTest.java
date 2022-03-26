@@ -1,7 +1,6 @@
 import java.nio.file.Path;
 import java.util.function.Supplier;
 import net.auoeke.eson.Eson;
-import net.auoeke.eson.serialization.EsonSerializer;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.annotation.Testable;
 
@@ -14,7 +13,7 @@ class EsonTest {
         var map = Eson.parseResource(loader.getResource("map.eson"));
         var example = Eson.parseResource(Path.of("example.eson"));
 
-        var serializer = new EsonSerializer();
+        var serializer = new Eson();
         var stuff = new Stuff();
         var stuffEson = serializer.toEson(stuff);
         System.out.println(stuffEson);
