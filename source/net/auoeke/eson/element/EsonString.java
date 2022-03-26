@@ -8,21 +8,21 @@ public final class EsonString implements EsonPrimitive {
 
     public final String value;
 
-    private String delimiter;
+    private CharSequence delimiter;
     private boolean raw;
 
-    public EsonString(String value, String delimiter) {
-        this.value = Objects.requireNonNull(value);
+    public EsonString(CharSequence value, CharSequence delimiter) {
+        this.value = Objects.requireNonNull(value).toString();
         this.delimiter = delimiter;
     }
 
-    public EsonString(String value) {
+    public EsonString(CharSequence value) {
         this(value, null);
 
         this.raw = true;
     }
 
-    public String delimiter() {
+    public CharSequence delimiter() {
         if (this.raw && terminator.matcher(this.value).find()) {
             var delimiter = this.delimiter(1);
 
@@ -40,7 +40,7 @@ public final class EsonString implements EsonPrimitive {
     }
 
     @Override public String stringValue() {
-        return this.value;
+        return this.value.toString();
     }
 
     @Override public Type type() {
@@ -57,10 +57,10 @@ public final class EsonString implements EsonPrimitive {
 
     @Override public String toString() {
         var delimiter = this.delimiter();
-        return delimiter == null ? this.value : delimiter + this.value + delimiter;
+        return delimiter == null ? this.value.toString() : delimiter + this.value + delimiter;
     }
 
-    private String delimiter(int length) {
+    private CharSequence delimiter(int length) {
         var delimiter = "\"".repeat(length);
         return this.value.startsWith(delimiter)
                && this.value.startsWith(delimiter = "'".repeat(length))

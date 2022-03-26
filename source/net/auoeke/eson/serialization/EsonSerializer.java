@@ -1,15 +1,14 @@
 package net.auoeke.eson.serialization;
 
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import net.auoeke.eson.element.EsonArray;
 import net.auoeke.eson.element.EsonBoolean;
 import net.auoeke.eson.element.EsonElement;
@@ -28,31 +27,59 @@ import net.auoeke.reflect.Flags;
 import net.auoeke.reflect.Types;
 
 public class EsonSerializer {
-    private final Map<Class<?>, EsonTypeSerializer<?, ?>> serializers = Map.of();
+    private final Map<Class<?>, EsonTypeSerializer<?, ?>> serializers = new HashMap<>();
+    private final Map<Class<?>, EsonTypeSerializer<?, ?>> hierarchySerializers = new HashMap<>();
+    private final Map<Class<?>, EsonTypeSerializer<?, ?>> cachedHierarchySerializers = new HashMap<>();
+
+    public EsonSerializer() {
+        this.registerSerializer(boolean.class, BooleanSerializer.instance);
+        this.registerSerializer(byte.class, ByteSerializer.instance);
+        this.registerSerializer(char.class, CharacterSerializer.instance);
+        this.registerSerializer(short.class, ShortSerializer.instance);
+        this.registerSerializer(int.class, IntegerSerializer.instance);
+        this.registerSerializer(long.class, LongSerializer.instance);
+        this.registerSerializer(float.class, FloatSerializer.instance);
+        this.registerSerializer(double.class, DoubleSerializer.instance);
+        this.registerSerializer(Boolean.class, BooleanSerializer.instance);
+        this.registerSerializer(Byte.class, ByteSerializer.instance);
+        this.registerSerializer(Character.class, CharacterSerializer.instance);
+        this.registerSerializer(Short.class, ShortSerializer.instance);
+        this.registerSerializer(Integer.class, IntegerSerializer.instance);
+        this.registerSerializer(Long.class, LongSerializer.instance);
+        this.registerSerializer(Float.class, FloatSerializer.instance);
+        this.registerSerializer(Double.class, DoubleSerializer.instance);
+        this.registerSerializer(BigInteger.class, BigIntegerSerializer.instance);
+        this.registerSerializer(BigDecimal.class, BigDecimalSerializer.instance);
+
+        this.registerHierarchySerializer(EsonElement.class, EsonElementSerializer.instance);
+        this.registerHierarchySerializer(CharSequence.class, CharSequenceSerializer.instance);
+        this.registerHierarchySerializer(Collection.class, CollectionSerializer.instance);
+        this.registerHierarchySerializer(Map.class, MapSerializer.instance);
+    }
+
+    public <A> void registerSerializer(Class<A> type, EsonTypeSerializer<A, ?> serializer) {
+        var previous = this.serializers.putIfAbsent(Objects.requireNonNull(type), Objects.requireNonNull(serializer));
+
+        if (previous != null) {
+            throw new IllegalArgumentException("%s already has a serializer (%s)".formatted(type, previous));
+        }
+    }
+
+    public <A> void registerHierarchySerializer(Class<A> type, EsonTypeSerializer<? extends A, ?> serializer) {
+        var previous = this.hierarchySerializers.putIfAbsent(Objects.requireNonNull(type), Objects.requireNonNull(serializer));
+
+        if (previous != null) {
+            throw new IllegalArgumentException("%s already has a serializer (%s)".formatted(type, previous));
+        }
+    }
 
     public synchronized EsonElement toEson(Object object) {
         if (object == null) return EsonNull.instance;
-        if (object instanceof String string) return new EsonString(string);
-        if (object instanceof Boolean boolea) return EsonBoolean.of(boolea);
-        if (object instanceof Byte byt) return new EsonInteger(byt);
-        if (object instanceof Character character) return new EsonString(String.valueOf(character));
-        if (object instanceof Short shor) return new EsonInteger(shor);
-        if (object instanceof Integer integer) return new EsonInteger(integer);
-        if (object instanceof Long lon) return new EsonInteger(lon);
-        if (object instanceof BigInteger integer) return new EsonInteger(integer);
-        if (object instanceof Float floa) return new EsonFloat(floa);
-        if (object instanceof Double doubl) return new EsonFloat(doubl);
-        if (object instanceof BigDecimal decimal) return new EsonFloat(decimal);
-        if (object instanceof EsonElement eson) return eson;
-        if (object instanceof Stream<?> stream) return stream.map(this::toEson).collect(Collectors.toCollection(EsonArray::new));
-        if (object instanceof Collection<?> collection) return this.toEson(collection.stream());
-        if (object.getClass().isArray()) return this.toEson(Stream.of(Types.box(object)));
 
-        if (object instanceof Map<?, ?> map) {
-            var esonMap = new EsonMap();
-            map.forEach((key, value) -> esonMap.put(String.valueOf(key), this.toEson(value)));
+        var serializer = this.serializer(object.getClass());
 
-            return esonMap;
+        if (serializer != null) {
+            return serializer.toEson(Classes.cast(object), this);
         }
 
         var map = new EsonMap();
@@ -74,44 +101,10 @@ public class EsonSerializer {
             return null;
         }
 
-        if (CharSequence.class.isAssignableFrom(type)) return (T) cast(EsonString.class, CharSequence.class, eson).value;
-        if (Types.equals(type, boolean.class)) return (T) (Object) cast(EsonBoolean.class, type, eson).value;
-        if (Types.equals(type, byte.class)) return (T) (Object) cast(EsonInteger.class, type, eson).value().byteValueExact();
+        var serializer = this.serializer(type);
 
-        if (Types.equals(type, char.class)) {
-            var string = cast(EsonString.class, type, eson).value;
-
-            if (string.length() != 1) {
-                throw new ClassCastException("string \"%s\" is not convertible to char".formatted(string));
-            }
-
-            return (T) (Object) string.charAt(0);
-        }
-
-        if (Types.equals(type, short.class)) return (T) (Object) cast(EsonInteger.class, type, eson).value().shortValueExact();
-        if (Types.equals(type, int.class)) return (T) (Object) cast(EsonInteger.class, type, eson).value().intValueExact();
-        if (Types.equals(type, long.class)) return (T) (Object) cast(EsonInteger.class, type, eson).value().longValueExact();
-        if (Types.equals(type, float.class)) return (T) (Object) cast(EsonFloat.class, type, eson).floatValue();
-        if (Types.equals(type, double.class)) return (T) (Object) cast(EsonFloat.class, type, eson).doubleValue();
-        if (type == BigInteger.class) return (T) cast(EsonInteger.class, type, eson).value();
-        if (type == BigDecimal.class) return (T) cast(EsonFloat.class, type, eson).value();
-        if (type == EsonElement.class) return (T) eson;
-        if (type == Stream.class) return (T) cast(EsonArray.class, type, eson).stream().map(element -> this.fromEson(null, element));
-        if (type == List.class) return (T) cast(EsonArray.class, type, eson).stream().map(element -> this.fromEson(null, element)).toList();
-        if (EsonElement.class.isAssignableFrom(type)) return (T) cast((Class<? extends EsonElement>) type, type, eson);
-
-        if (type.isArray()) {
-            var componentType = type.componentType();
-            return Types.convert(
-                cast(EsonArray.class, type, eson).stream()
-                    .map(element -> this.fromEson(componentType, element))
-                    .toArray(componentType.isPrimitive() ? Object[]::new : length -> (Object[]) Array.newInstance(componentType, length)),
-                componentType
-            );
-        }
-
-        if (type == Map.class) {
-            return (T) this.fromEson(cast(EsonMap.class, type, eson));
+        if (serializer != null) {
+            return serializer.fromEson(Classes.cast(eson), this);
         }
 
         if (eson instanceof EsonMap map) {
@@ -174,11 +167,18 @@ public class EsonSerializer {
         return hashMap;
     }
 
-    private static <T extends EsonElement> T cast(Class<T> type, Class<?> target, EsonElement eson) {
-        if (Types.canCast(type, eson.getClass())) {
-            return (T) eson;
+    private <A> EsonTypeSerializer<A, ?> serializer(Class<A> type) {
+        var serializer = this.serializers.get(type);
+
+        if (serializer != null) {
+            return (EsonTypeSerializer<A, ?>) serializer;
         }
 
-        throw new ClassCastException("cannot convert %s %s to %s".formatted(eson.getClass().getSimpleName(), eson, target.getName()));
+        return (EsonTypeSerializer<A, ?>) this.cachedHierarchySerializers.computeIfAbsent(type, t -> Types.hierarchy(type)
+            .map(this.hierarchySerializers::get)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElseGet(() -> type.isArray() ? Classes.cast(new ArraySerializer(type.componentType())) : null)
+        );
     }
 }
