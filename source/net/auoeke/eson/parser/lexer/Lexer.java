@@ -106,13 +106,7 @@ public class Lexer {
     }
 
     private boolean peek(String expected) {
-        for (var index = 0; index < expected.length(); ++index) {
-            if (index >= this.eson.length() || this.eson.charAt(this.previousIndex() + index) != expected.charAt(index)) {
-                return false;
-            }
-        }
-
-        return true;
+        return this.eson.regionMatches(this.previousIndex(), expected, 0, expected.length());
     }
 
     private void index(int index) {
