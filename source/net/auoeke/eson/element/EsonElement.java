@@ -4,7 +4,6 @@ public sealed interface EsonElement permits EsonPrimitive, EsonPair, EsonArray, 
     Type type();
 
     enum Type {
-        EMPTY,
         NULL,
         BOOLEAN,
         INTEGER,

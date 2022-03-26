@@ -1,3 +1,4 @@
+import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 import net.auoeke.eson.Eson;
@@ -13,11 +14,11 @@ class EsonTest {
         var map = Eson.parseResource(loader.getResource("map.eson"));
         var example = Eson.parseResource(Path.of("example.eson"));
 
-        var serializer = new Eson();
+        var eson = new Eson();
         var stuff = new Stuff();
-        var stuffEson = serializer.toEson(stuff);
-        System.out.println(stuffEson);
-        var newStuff = serializer.fromEson(Stuff.class, stuffEson);
+        var stuffEson = eson.toEson(stuff);
+        var newStuff = eson.fromEson(Stuff.class, stuffEson);
+        eson.serialize(System.out, stuffEson);
 
         var bp = true;
     }

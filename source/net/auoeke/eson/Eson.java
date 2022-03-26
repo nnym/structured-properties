@@ -31,9 +31,12 @@ import net.auoeke.reflect.Flags;
 import net.auoeke.reflect.Types;
 
 public class Eson {
+    private static final ThreadLocal<Integer> depth = ThreadLocal.withInitial(() -> -1);
+
     private final Map<Class<?>, EsonAdapter<?, ?>> serializers = new HashMap<>();
     private final Map<Class<?>, EsonAdapter<?, ?>> hierarchySerializers = new HashMap<>();
     private final Map<Class<?>, EsonAdapter<?, ?>> cachedHierarchySerializers = new HashMap<>();
+    private final EsonSerializer serializer = new EsonSerializer("    ");
 
     public Eson() {
         this.registerSerializer(boolean.class, BooleanAdapter.instance);
@@ -108,7 +111,7 @@ public class Eson {
     public EsonElement toEson(Object object) {
         if (object == null) return EsonNull.instance;
 
-        var serializer = this.serializer(object.getClass());
+        var serializer = this.adapter(object.getClass());
 
         if (serializer != null) {
             return serializer.toEson(Classes.cast(object), this);
@@ -135,7 +138,7 @@ public class Eson {
             return null;
         }
 
-        var serializer = this.serializer(type);
+        var serializer = this.adapter(type);
 
         if (serializer != null) {
             return serializer.fromEson(Classes.cast(eson), this);
@@ -201,7 +204,11 @@ public class Eson {
         return hashMap;
     }
 
-    private <A> EsonAdapter<A, ?> serializer(Class<A> type) {
+    public synchronized Appendable serialize(Appendable output, EsonElement element) {
+        return this.serializer.serialize(output, element);
+    }
+
+    private <A> EsonAdapter<A, ?> adapter(Class<A> type) {
         var serializer = this.serializers.get(type);
 
         if (serializer != null) {

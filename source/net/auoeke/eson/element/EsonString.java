@@ -40,7 +40,7 @@ public final class EsonString implements EsonPrimitive {
     }
 
     @Override public String stringValue() {
-        return this.value.toString();
+        return this.value;
     }
 
     @Override public Type type() {
