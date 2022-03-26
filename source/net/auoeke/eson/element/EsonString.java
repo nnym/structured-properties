@@ -60,7 +60,7 @@ public final class EsonString implements EsonPrimitive {
         return delimiter == null ? this.value.toString() : delimiter + this.value + delimiter;
     }
 
-    private CharSequence delimiter(int length) {
+    private String delimiter(int length) {
         var delimiter = "\"".repeat(length);
         return this.value.startsWith(delimiter)
                && this.value.startsWith(delimiter = "'".repeat(length))
