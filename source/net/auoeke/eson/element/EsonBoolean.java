@@ -1,6 +1,6 @@
 package net.auoeke.eson.element;
 
-public class EsonBoolean implements EsonElement {
+public final class EsonBoolean implements EsonPrimitive {
     private static final EsonBoolean tru = new EsonBoolean(true);
     private static final EsonBoolean fals = new EsonBoolean(false);
 
@@ -12,6 +12,10 @@ public class EsonBoolean implements EsonElement {
 
     public static EsonBoolean of(boolean value) {
         return value ? tru : fals;
+    }
+
+    @Override public String stringValue() {
+        return Boolean.toString(this.value);
     }
 
     @Override public Type type() {
@@ -27,6 +31,6 @@ public class EsonBoolean implements EsonElement {
     }
 
     @Override public String toString() {
-        return Boolean.toString(this.value);
+        return this.stringValue();
     }
 }

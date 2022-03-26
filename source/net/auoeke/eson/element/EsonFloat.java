@@ -2,7 +2,7 @@ package net.auoeke.eson.element;
 
 import java.math.BigDecimal;
 
-public class EsonFloat extends EsonNumber {
+public final class EsonFloat extends EsonNumber {
     private BigDecimal value;
     private boolean raw;
 
@@ -22,6 +22,10 @@ public class EsonFloat extends EsonNumber {
         super(value.toString());
 
         this.value = value;
+    }
+
+    public EsonFloat(double value) {
+        this(BigDecimal.valueOf(value));
     }
 
     public BigDecimal value() {

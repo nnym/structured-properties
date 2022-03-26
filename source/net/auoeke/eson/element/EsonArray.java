@@ -3,7 +3,7 @@ package net.auoeke.eson.element;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class EsonArray extends ArrayList<EsonElement> implements EsonElement {
+public final class EsonArray extends ArrayList<EsonElement> implements EsonElement {
     public EsonArray() {}
 
     public EsonArray(int initialCapacity) {

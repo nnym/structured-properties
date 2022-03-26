@@ -8,7 +8,6 @@ import net.auoeke.eson.Eson;
 import net.auoeke.eson.element.EsonArray;
 import net.auoeke.eson.element.EsonBoolean;
 import net.auoeke.eson.element.EsonElement;
-import net.auoeke.eson.element.EsonEmpty;
 import net.auoeke.eson.element.EsonFloat;
 import net.auoeke.eson.element.EsonInteger;
 import net.auoeke.eson.element.EsonMap;
@@ -35,7 +34,7 @@ public class Parser {
 
     public EsonElement parse() {
         if (!this.advanceCode()) {
-            return EsonEmpty.instance;
+            return new EsonMap();
         }
 
         var element = this.nextElement(false);
@@ -56,7 +55,11 @@ public class Parser {
                 }
 
                 var map = new EsonMap();
-                map.put(((EsonPrimitive) pair.a).stringValue(), pair.b);
+
+                if (map.put(((EsonPrimitive) pair.a).stringValue(), pair.b) != null) {
+                    // todo: error: duplicate map key
+                }
+
                 this.endMap(map, false);
 
                 return map;

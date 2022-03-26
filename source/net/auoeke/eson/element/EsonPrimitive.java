@@ -1,5 +1,5 @@
 package net.auoeke.eson.element;
 
-public interface EsonPrimitive extends EsonElement {
+public sealed interface EsonPrimitive extends EsonElement permits EsonBoolean, EsonNull, EsonNumber, EsonString {
     String stringValue();
 }

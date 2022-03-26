@@ -1,6 +1,6 @@
 package net.auoeke.eson.element;
 
-public abstract class EsonNumber extends Number implements EsonPrimitive {
+public abstract sealed class EsonNumber extends Number implements EsonPrimitive permits EsonInteger, EsonFloat {
     protected final String source;
 
     public EsonNumber(String source) {

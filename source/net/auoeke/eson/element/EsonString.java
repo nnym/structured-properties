@@ -3,8 +3,8 @@ package net.auoeke.eson.element;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-public class EsonString implements EsonPrimitive {
-    private static final Pattern terminator = Pattern.compile("[]\\[{}\n,=]|##|/*");
+public final class EsonString implements EsonPrimitive {
+    private static final Pattern terminator = Pattern.compile("[]\\[{}\n,=]|##|/\\*");
 
     public final String value;
 

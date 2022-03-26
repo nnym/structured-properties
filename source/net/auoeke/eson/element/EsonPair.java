@@ -2,7 +2,7 @@ package net.auoeke.eson.element;
 
 import java.util.Objects;
 
-public class EsonPair implements EsonElement {
+public final class EsonPair implements EsonElement {
     public EsonElement a;
     public EsonElement b;
 

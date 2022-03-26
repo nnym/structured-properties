@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.IntStream;
 import net.auoeke.eson.Eson;
 import net.auoeke.eson.parser.Context;
 import net.auoeke.eson.parser.lexer.error.ErrorKey;
@@ -22,6 +21,11 @@ import net.auoeke.eson.parser.lexer.lexeme.Token;
 import net.auoeke.eson.parser.lexer.lexeme.WhitespaceLexeme;
 
 public class Lexer {
+    private static final String STRING_DELIMITERS = "\"'`";
+    private static final String LINE_COMMENT = "##";
+    private static final String BLOCK_COMMENT = "/*";
+    private static final String BLOCK_COMMENT_END = "*/";
+
     private final String eson;
     private final List<Lexeme> lexemes = new ArrayList<>();
     private final boolean retainComments;
@@ -70,11 +74,11 @@ public class Lexer {
         this.current = this.eson.charAt(this.nextIndex++);
 
         if (this.current == '\n') {
-            this.line++;
+            ++this.line;
             this.column = 0;
         }
 
-        this.column++;
+        ++this.column;
 
         return this.current;
     }
@@ -102,7 +106,7 @@ public class Lexer {
     }
 
     private boolean peek(String expected) {
-        for (var index = 0; index < expected.length(); index++) {
+        for (var index = 0; index < expected.length(); ++index) {
             if (index >= this.eson.length() || this.eson.charAt(this.previousIndex() + index) != expected.charAt(index)) {
                 return false;
             }
@@ -169,10 +173,12 @@ public class Lexer {
     private void scanExpression() {
         if (contains("{}[]", this.current)) {
             this.structure(this.current);
-        } else if (contains("\"'`", this.current)) {
-            this.string(this.current);
         } else {
-            this.rawString(this.current);
+            if (contains(STRING_DELIMITERS, this.current)) {
+                this.string(this.current);
+            } else {
+                this.rawString(this.current);
+            }
         }
     }
 
@@ -237,35 +243,29 @@ public class Lexer {
     }
 
     private boolean comment() {
-        if (this.peek("/*")) {
+        if (this.peek(BLOCK_COMMENT)) {
             this.add(new CommentLexeme(this.savedLine, this.savedColumn, Token.BLOCK_COMMENT, buildString(builder -> {
                 var depth = 1;
 
                 while (this.advance()) {
-                    switch (this.current) {
-                        case '/' -> {
-                            builder.append('/');
+                    if (this.peek(BLOCK_COMMENT)) {
+                        ++this.nextIndex;
+                        ++depth;
+                        builder.append(BLOCK_COMMENT);
+                    } else if (this.peek(BLOCK_COMMENT_END)) {
+                        ++this.nextIndex;
 
-                            var next = this.next();
-                            builder.append(next);
+                        if (--depth == 0) {
+                            return;
+                        }
 
-                            if (next == '*') {
-                                depth++;
-                            }
-                        }
-                        case '*' -> {
-                            var next = this.next();
-                            if (next == '/' && --depth == 0) {
-                                return;
-                            }
-                            builder.append('*');
-                            builder.append(next);
-                        }
-                        default -> builder.append(this.current);
+                        builder.append(BLOCK_COMMENT_END);
+                    } else {
+                        builder.append(this.current);
                     }
                 }
             })));
-        } else if (this.peek("##")) {
+        } else if (this.peek(LINE_COMMENT)) {
             this.add(new CommentLexeme(this.savedLine, this.savedColumn, Token.LINE_COMMENT, buildString(builder -> {
                 while (this.advance()) {
                     if (this.current == '\n') {
@@ -325,7 +325,7 @@ public class Lexer {
                 return length;
             }
 
-            length++;
+            ++length;
         }
 
         return length;
@@ -343,7 +343,7 @@ public class Lexer {
                         var count = 1;
 
                         while (count < length && this.next() == delimiter) {
-                            count++;
+                            ++count;
                         }
 
                         if (count == length) {
@@ -351,8 +351,7 @@ public class Lexer {
                         }
 
                         this.index(this.previousIndex() - count);
-                        builder.append(this.current);
-                        repeat(count, () -> builder.append(this.next()));
+                        builder.append(this.eson, this.previousIndex(), this.nextIndex += count);
                     } else {
                         builder.append(this.current);
                     }
@@ -391,7 +390,7 @@ public class Lexer {
                 } else if (whitespace == -1) {
                     builder.append(this.current);
                 } else {
-                    IntStream.rangeClosed(whitespace, this.previousIndex()).forEach(index -> builder.append(this.eson.charAt(index)));
+                    builder.append(this.eson, whitespace, this.nextIndex);
                     whitespace = -1;
                 }
             }
@@ -403,17 +402,13 @@ public class Lexer {
     }
 
     private boolean shouldTerminateExpression() {
-        return contains("\n,={}[]", this.current) || this.peek("##") || this.peek("/*");
+        return contains("\n,={}[]", this.current) || this.peek(LINE_COMMENT) || this.peek(BLOCK_COMMENT);
     }
 
     private static String buildString(Consumer<StringBuilder> builder) {
         var b = new StringBuilder();
         builder.accept(b);
         return b.toString();
-    }
-
-    private static void repeat(int n, Runnable action) {
-        IntStream.range(0, n).forEach(__ -> action.run());
     }
 
     private static boolean contains(String string, int character) {

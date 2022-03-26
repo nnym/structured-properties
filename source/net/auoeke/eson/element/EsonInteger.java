@@ -2,7 +2,7 @@ package net.auoeke.eson.element;
 
 import java.math.BigInteger;
 
-public class EsonInteger extends EsonNumber {
+public final class EsonInteger extends EsonNumber {
     private BigInteger value;
     private boolean raw;
 
@@ -16,6 +16,10 @@ public class EsonInteger extends EsonNumber {
         super(value.toString());
 
         this.value = value;
+    }
+
+    public EsonInteger(long value) {
+        this(BigInteger.valueOf(value));
     }
 
     public EsonInteger(String value) {

@@ -1,6 +1,6 @@
 package net.auoeke.eson.element;
 
-public interface EsonElement {
+public sealed interface EsonElement permits EsonPrimitive, EsonPair, EsonArray, EsonMap {
     Type type();
 
     enum Type {
