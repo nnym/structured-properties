@@ -15,12 +15,12 @@ import net.auoeke.eson.element.EsonString;
 
 public class EsonSerializer {
     protected final String indentation;
-    protected final int elementLength = 16;
-    protected final Deque<Integer> lengths = new ArrayDeque<>();
+    // protected final int elementLength = 16;
+    // protected final Deque<Integer> lengths = new ArrayDeque<>();
     protected int depth;
-    protected int line;
-    protected int offset;
-    protected int length;
+    // protected int line;
+    // protected int offset;
+    // protected int length;
     protected boolean prependLine;
 
     public EsonSerializer(String indentation) {
@@ -28,9 +28,9 @@ public class EsonSerializer {
     }
 
     public final synchronized Appendable serialize(Appendable output, EsonElement element) {
-        this.depth = -1;
-        this.line = 0;
-        this.offset = 0;
+        // this.depth = -1;
+        // this.line = 0;
+        // this.offset = 0;
         return this.append(output, element);
     }
 

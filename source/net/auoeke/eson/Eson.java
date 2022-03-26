@@ -31,8 +31,6 @@ import net.auoeke.reflect.Flags;
 import net.auoeke.reflect.Types;
 
 public class Eson {
-    private static final ThreadLocal<Integer> depth = ThreadLocal.withInitial(() -> -1);
-
     private final Map<Class<?>, EsonAdapter<?, ?>> serializers = new HashMap<>();
     private final Map<Class<?>, EsonAdapter<?, ?>> hierarchySerializers = new HashMap<>();
     private final Map<Class<?>, EsonAdapter<?, ?>> cachedHierarchySerializers = new HashMap<>();
