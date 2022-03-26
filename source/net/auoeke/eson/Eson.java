@@ -4,12 +4,14 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import net.auoeke.eson.element.EsonArray;
 import net.auoeke.eson.element.EsonBoolean;
@@ -23,43 +25,45 @@ import net.auoeke.eson.element.EsonPrimitive;
 import net.auoeke.eson.element.EsonString;
 import net.auoeke.eson.parser.Parser;
 import net.auoeke.eson.parser.lexer.error.SyntaxException;
-import net.auoeke.reflect.Accessor;
 import net.auoeke.reflect.Classes;
-import net.auoeke.reflect.Constructors;
-import net.auoeke.reflect.Fields;
-import net.auoeke.reflect.Flags;
-import net.auoeke.reflect.Types;
 
 public class Eson {
-    private final Map<Class<?>, EsonAdapter<?, ?>> serializers = new HashMap<>();
-    private final Map<Class<?>, EsonAdapter<?, ?>> hierarchySerializers = new HashMap<>();
-    private final Map<Class<?>, EsonAdapter<?, ?>> cachedHierarchySerializers = new HashMap<>();
-    private final EsonSerializer serializer = new EsonSerializer("    ");
+    private final Map<Class<?>, PolymorphicToEsonAdapter<?, ?>> toEsonAdapters = new HashMap<>();
+    private final List<PolymorphicToEsonAdapter<?, ?>> polymorphicToEsonAdapters = new ArrayList<>();
+    private final Map<Class<?>, PolymorphicToEsonAdapter<?, ?>> cachedToEsonAdapters = new HashMap<>();
+    private final Map<AdapterKey, PolymorphicFromEsonAdapter<?, ?>> fromEsonAdapters = new HashMap<>();
+    private final Map<Class<? extends EsonElement>, List<PolymorphicFromEsonAdapter<?, ?>>> polymorphicFromEsonAdapters = new LinkedHashMap<>();
+    private final Map<AdapterKey, PolymorphicFromEsonAdapter<?, ?>> cachedFromEsonAdapters = new HashMap<>();
+    private final EsonSerializer adapter = new EsonSerializer("    ");
 
     public Eson() {
-        this.registerSerializer(boolean.class, BooleanAdapter.instance);
-        this.registerSerializer(byte.class, ByteAdapter.instance);
-        this.registerSerializer(char.class, CharacterAdapter.instance);
-        this.registerSerializer(short.class, ShortAdapter.instance);
-        this.registerSerializer(int.class, IntegerAdapter.instance);
-        this.registerSerializer(long.class, LongAdapter.instance);
-        this.registerSerializer(float.class, FloatAdapter.instance);
-        this.registerSerializer(double.class, DoubleAdapter.instance);
-        this.registerSerializer(Boolean.class, BooleanAdapter.instance);
-        this.registerSerializer(Byte.class, ByteAdapter.instance);
-        this.registerSerializer(Character.class, CharacterAdapter.instance);
-        this.registerSerializer(Short.class, ShortAdapter.instance);
-        this.registerSerializer(Integer.class, IntegerAdapter.instance);
-        this.registerSerializer(Long.class, LongAdapter.instance);
-        this.registerSerializer(Float.class, FloatAdapter.instance);
-        this.registerSerializer(Double.class, DoubleAdapter.instance);
-        this.registerSerializer(BigInteger.class, BigIntegerAdapter.instance);
-        this.registerSerializer(BigDecimal.class, BigDecimalAdapter.instance);
+        this.adapt(EsonMap.class, ObjectAdapter.instance);
+        this.adapt(EsonString.class, EnumAdapter.instance);
+        this.adapt(EsonArray.class, ArrayAdapter.instance);
 
-        this.registerHierarchySerializer(EsonElement.class, EsonElementAdapter.instance);
-        this.registerHierarchySerializer(CharSequence.class, CharSequenceAdapter.instance);
-        this.registerHierarchySerializer(Collection.class, CollectionAdapter.instance);
-        this.registerHierarchySerializer(Map.class, MapAdapter.instance);
+        this.adapt(boolean.class, EsonBoolean.class, BooleanAdapter.instance);
+        this.adapt(byte.class, EsonInteger.class, ByteAdapter.instance);
+        this.adapt(char.class, EsonString.class, CharacterAdapter.instance);
+        this.adapt(short.class, EsonInteger.class, ShortAdapter.instance);
+        this.adapt(int.class, EsonInteger.class, IntegerAdapter.instance);
+        this.adapt(long.class, EsonInteger.class, LongAdapter.instance);
+        this.adapt(float.class, EsonFloat.class, FloatAdapter.instance);
+        this.adapt(double.class, EsonFloat.class, DoubleAdapter.instance);
+        this.adapt(Boolean.class, EsonBoolean.class, BooleanAdapter.instance);
+        this.adapt(Byte.class, EsonInteger.class, ByteAdapter.instance);
+        this.adapt(Character.class, EsonString.class, CharacterAdapter.instance);
+        this.adapt(Short.class, EsonInteger.class, ShortAdapter.instance);
+        this.adapt(Integer.class, EsonInteger.class, IntegerAdapter.instance);
+        this.adapt(Long.class, EsonInteger.class, LongAdapter.instance);
+        this.adapt(Float.class, EsonFloat.class, FloatAdapter.instance);
+        this.adapt(Double.class, EsonFloat.class, DoubleAdapter.instance);
+        this.adapt(BigInteger.class, EsonInteger.class, BigIntegerAdapter.instance);
+        this.adapt(BigDecimal.class, EsonFloat.class, BigDecimalAdapter.instance);
+
+        this.adaptBase(EsonElement.class, EsonElement.class, EsonElementAdapter.instance);
+        this.adaptBase(CharSequence.class, EsonString.class, CharSequenceAdapter.instance);
+        this.adaptBase(Collection.class, EsonArray.class, CollectionAdapter.instance);
+        this.adaptBase(Map.class, EsonMap.class, MapAdapter.instance);
     }
 
     public static EsonElement parse(String eson, Option... options) {
@@ -90,37 +94,71 @@ public class Eson {
         }
     }
 
-    public <A> void registerSerializer(Class<A> type, EsonAdapter<A, ?> serializer) {
-        var previous = this.serializers.putIfAbsent(Objects.requireNonNull(type), Objects.requireNonNull(serializer));
+    public <A> void adaptToEson(Class<A> type, ToEsonAdapter<? extends A, ?> adapter) {
+        var previous = this.toEsonAdapters.putIfAbsent(Objects.requireNonNull(type), Objects.requireNonNull(adapter));
 
         if (previous != null) {
-            throw new IllegalArgumentException("%s already has a serializer (%s)".formatted(type, previous));
+            throw new IllegalArgumentException("%s already has a ToEsonAdapter (%s)".formatted(type, previous));
         }
     }
 
-    public <A> void registerHierarchySerializer(Class<A> type, EsonAdapter<? extends A, ?> serializer) {
-        var previous = this.hierarchySerializers.putIfAbsent(Objects.requireNonNull(type), Objects.requireNonNull(serializer));
+    public void adaptToEson(PolymorphicToEsonAdapter<?, ?> adapter) {
+        this.polymorphicToEsonAdapters.add(Objects.requireNonNull(adapter));
+    }
+
+    public <A, B extends EsonElement> void adaptBaseToEson(Class<A> type, EsonAdapter<? extends A, B> adapter) {
+        this.adaptToEson(new PolymorphicToEsonAdapter<A, B>() {
+            @Override public boolean accept(Class<?> t) {
+                return type.isAssignableFrom(t);
+            }
+
+            @Override public B toEson(A a, Eson serializer) {
+                return adapter.toEson(Classes.cast(a), serializer);
+            }
+        });
+    }
+
+    public <A, B extends EsonElement> void adaptFromEson(Class<A> type, Class<B> esonType, FromEsonAdapter<A, B> adapter) {
+        var previous = this.fromEsonAdapters.putIfAbsent(new AdapterKey(Objects.requireNonNull(type), Objects.requireNonNull(esonType)), Objects.requireNonNull(adapter));
 
         if (previous != null) {
-            throw new IllegalArgumentException("%s already has a serializer (%s)".formatted(type, previous));
+            throw new IllegalArgumentException("%s already has an adapter from %s (%s)".formatted(type, esonType.getSimpleName(), previous));
         }
+    }
+
+    public <B extends EsonElement> void adaptFromEson(Class<B> esonType, PolymorphicFromEsonAdapter<?, B> adapter) {
+        this.polymorphicFromEsonAdapters.computeIfAbsent(Objects.requireNonNull(esonType), e -> new ArrayList<>()).add(Objects.requireNonNull(adapter));
+    }
+
+    public <A, B extends EsonElement> void adaptBaseFromEson(Class<A> type, Class<B> esonType, FromEsonAdapter<? extends A, B> adapter) {
+        this.adaptFromEson(esonType, new PolymorphicFromEsonAdapter<A, B>() {
+            @Override public boolean accept(Class<?> t) {
+                return type.isAssignableFrom(t);
+            }
+
+            @Override public A fromEson(Class<A> type, B eson, Eson serializer) {
+                return adapter.fromEson(eson, serializer);
+            }
+        });
+    }
+
+    public <A, B extends EsonElement> void adapt(Class<A> type, Class<B> esonType, EsonAdapter<A, B> adapter) {
+        this.adaptToEson(type, adapter);
+        this.adaptFromEson(type, esonType, adapter);
+    }
+
+    public <A, B extends EsonElement> void adapt(Class<B> esonType, PolymorphicEsonAdapter<A, B> adapter) {
+        this.adaptToEson(adapter);
+        this.adaptFromEson(esonType, adapter);
+    }
+
+    public <A, B extends EsonElement> void adaptBase(Class<A> type, Class<B> esonType, EsonAdapter<? extends A, B> adapter) {
+        this.adaptBaseToEson(type, adapter);
+        this.adaptBaseFromEson(type, esonType, adapter);
     }
 
     public EsonElement toEson(Object object) {
-        if (object == null) return EsonNull.instance;
-
-        var serializer = this.adapter(object.getClass());
-
-        if (serializer != null) {
-            return serializer.toEson(Classes.cast(object), this);
-        }
-
-        var map = new EsonMap();
-        Fields.all(object)
-            .filter(field -> !Flags.any(field, Flags.STATIC | Flags.SYNTHETIC | Flags.TRANSIENT))
-            .forEach(field -> map.put(field.getName(), this.toEson(Accessor.get(object, field))));
-
-        return map;
+        return object == null ? EsonNull.instance : this.toEsonAdapter(object.getClass()).toEson(Classes.cast(object), this);
     }
 
     public <T> T fromEson(Class<T> type, EsonElement eson) {
@@ -136,23 +174,7 @@ public class Eson {
             return null;
         }
 
-        var serializer = this.adapter(type);
-
-        if (serializer != null) {
-            return serializer.fromEson(Classes.cast(eson), this);
-        }
-
-        if (eson instanceof EsonMap map) {
-            var object = Constructors.instantiate(type);
-            map.forEach((key, value) -> {
-                var field = Objects.requireNonNull(Fields.of(object, key), () -> "%s does not have a field named \"%s\"".formatted(type, key));
-                Accessor.put(object, field, this.fromEson(field.getType(), value));
-            });
-
-            return object;
-        }
-
-        throw new IllegalArgumentException("no deserializer for %s was found".formatted(type));
+        return this.fromEsonAdapter(type, eson.getClass()).fromEson(type, Classes.cast(eson), this);
     }
 
     public Object fromEson(EsonElement eson) {
@@ -203,31 +225,30 @@ public class Eson {
     }
 
     public synchronized Appendable serialize(Appendable output, EsonElement element) {
-        return this.serializer.serialize(output, element);
+        return this.adapter.serialize(output, element);
     }
 
-    private <A> EsonAdapter<A, ?> adapter(Class<A> type) {
-        var serializer = this.serializers.get(type);
+    private <A, B extends EsonElement> PolymorphicToEsonAdapter<A, B> toEsonAdapter(Class<A> type) {
+        return (PolymorphicToEsonAdapter<A, B>) this.cachedToEsonAdapters.computeIfAbsent(type, t -> Optional.ofNullable(this.toEsonAdapters.get(t))
+            .orElseGet(() -> Classes.cast(this.polymorphicToEsonAdapters.stream()
+                .filter(adapter -> adapter.accept(type))
+                .reduce((a, b) -> b)
+            .orElseThrow(() -> new IllegalArgumentException("no %s -> eson adapter was found".formatted(type.getName())))))
+        );
+    }
 
-        if (serializer != null) {
-            return (EsonAdapter<A, ?>) serializer;
-        }
-
-        return (EsonAdapter<A, ?>) this.cachedHierarchySerializers.computeIfAbsent(type, t -> Types.hierarchy(type)
-            .map(this.hierarchySerializers::get)
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElseGet(() -> Classes.cast(
-                // @formatter:off
-                type.isArray() ? new ArrayAdapter(type.componentType())
-                : type.isEnum() ? new EnumAdapter(type)
-                : null
-                // @formatter:on
-            ))
+    private <A, B extends EsonElement> PolymorphicFromEsonAdapter<A, B> fromEsonAdapter(Class<A> type, Class<B> esonType) {
+        return (PolymorphicFromEsonAdapter<A, B>) this.cachedFromEsonAdapters.computeIfAbsent(new AdapterKey(type, esonType), k -> Optional.ofNullable(this.fromEsonAdapters.get(k))
+            .orElseGet(() -> Classes.cast(Optional.ofNullable(this.polymorphicFromEsonAdapters.get(esonType)).flatMap(adapters -> adapters.stream()
+                .filter(adapter -> adapter.accept(type))
+                .reduce((a, b) -> b)
+            ).orElseThrow(() -> new IllegalArgumentException("no %s -> %s adapter was found".formatted(type.getName(), esonType.getSimpleName())))))
         );
     }
 
     public enum Option {
         RETAIN_COMMENTS
     }
+
+    private record AdapterKey(Class<?> type, Class<?> esonType) {}
 }
