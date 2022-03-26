@@ -15,10 +15,10 @@ class EsonTest {
         var example = Eson.parseResource(Path.of("example.eson"));
 
         var eson = new Eson();
-        var stuff = new Stuff();
-        var stuffEson = eson.toEson(stuff);
-        var newStuff = eson.fromEson(Stuff.class, stuffEson);
-        eson.serialize(System.out, stuffEson);
+        // var stuff = new Stuff();
+        // var stuffEson = eson.toEson(stuff);
+        // var newStuff = eson.fromEson(Stuff.class, stuffEson);
+        // eson.serialize(System.out, stuffEson);
 
         var bp = true;
     }

@@ -60,6 +60,12 @@ public class Eson {
         this.adapt(BigInteger.class, EsonInteger.class, BigIntegerAdapter.instance);
         this.adapt(BigDecimal.class, EsonFloat.class, BigDecimalAdapter.instance);
 
+        this.adaptFromEson(float.class, EsonInteger.class, (eson, serializer) -> eson.floatValue());
+        this.adaptFromEson(double.class, EsonInteger.class, (eson, serializer) -> eson.doubleValue());
+        this.adaptFromEson(Float.class, EsonInteger.class, (eson, serializer) -> eson.floatValue());
+        this.adaptFromEson(Double.class, EsonInteger.class, (eson, serializer) -> eson.doubleValue());
+        this.adaptFromEson(BigDecimal.class, EsonInteger.class, (eson, serializer) -> new BigDecimal(eson.value()));
+
         this.adaptBase(EsonElement.class, EsonElement.class, EsonElementAdapter.instance);
         this.adaptBase(CharSequence.class, EsonString.class, CharSequenceAdapter.instance);
         this.adaptBase(Collection.class, EsonArray.class, CollectionAdapter.instance);
@@ -242,7 +248,7 @@ public class Eson {
             .orElseGet(() -> Classes.cast(Optional.ofNullable(this.polymorphicFromEsonAdapters.get(esonType)).flatMap(adapters -> adapters.stream()
                 .filter(adapter -> adapter.accept(type))
                 .reduce((a, b) -> b)
-            ).orElseThrow(() -> new IllegalArgumentException("no %s -> %s adapter was found".formatted(type.getName(), esonType.getSimpleName())))))
+            ).orElseThrow(() -> new IllegalArgumentException("no %s -> %s adapter was found".formatted(esonType.getSimpleName(), type.getName())))))
         );
     }
 
