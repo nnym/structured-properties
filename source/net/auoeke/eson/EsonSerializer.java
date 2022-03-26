@@ -28,7 +28,7 @@ public class EsonSerializer {
     }
 
     public final synchronized Appendable serialize(Appendable output, EsonElement element) {
-        // this.depth = -1;
+        this.depth = -1;
         // this.line = 0;
         // this.offset = 0;
         return this.append(output, element);
