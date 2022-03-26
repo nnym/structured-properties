@@ -105,7 +105,7 @@ public class Eson {
         }
     }
 
-    public synchronized EsonElement toEson(Object object) {
+    public EsonElement toEson(Object object) {
         if (object == null) return EsonNull.instance;
 
         var serializer = this.serializer(object.getClass());
@@ -122,7 +122,7 @@ public class Eson {
         return map;
     }
 
-    public synchronized <T> T fromEson(Class<T> type, EsonElement eson) {
+    public <T> T fromEson(Class<T> type, EsonElement eson) {
         if (type == null) {
             return (T) this.fromEson(eson);
         }
@@ -154,7 +154,7 @@ public class Eson {
         throw new IllegalArgumentException("no deserializer for %s was found".formatted(type));
     }
 
-    public synchronized Object fromEson(EsonElement eson) {
+    public Object fromEson(EsonElement eson) {
         if (eson == EsonNull.instance) return null;
         if (eson instanceof EsonBoolean boolea) return this.fromEson(boolea);
         if (eson instanceof EsonInteger integer) return this.fromEson(integer);
@@ -194,7 +194,7 @@ public class Eson {
         return array.stream().map(this::fromEson).collect(Collectors.toList());
     }
 
-    public synchronized Map<String, Object> fromEson(EsonMap map) {
+    public Map<String, Object> fromEson(EsonMap map) {
         var hashMap = new LinkedHashMap<String, Object>();
         map.forEach((key, value) -> hashMap.put(key, this.fromEson(value)));
 
