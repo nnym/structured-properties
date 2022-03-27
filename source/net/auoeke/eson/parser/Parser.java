@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import net.auoeke.eson.Eson;
 import net.auoeke.eson.element.EsonArray;
 import net.auoeke.eson.element.EsonBoolean;
 import net.auoeke.eson.element.EsonElement;
@@ -16,11 +17,12 @@ import net.auoeke.eson.element.EsonPrimitive;
 import net.auoeke.eson.element.EsonString;
 import net.auoeke.eson.parser.lexer.LexemeIterator;
 import net.auoeke.eson.parser.lexer.Lexer;
+import net.auoeke.eson.parser.lexer.error.ErrorKey;
+import net.auoeke.eson.parser.lexer.error.SyntaxException;
 import net.auoeke.eson.parser.lexer.lexeme.CommentLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.Lexeme;
 import net.auoeke.eson.parser.lexer.lexeme.StringLexeme;
 import net.auoeke.eson.parser.lexer.lexeme.Token;
-import net.auoeke.eson.Eson;
 
 public class Parser {
     private final List<CommentLexeme> comments = new ArrayList<>();
@@ -50,14 +52,13 @@ public class Parser {
 
             if (element instanceof EsonPair pair) {
                 if (!pair.a.type().primitive()) {
-                    // todo: error: compound type map keys are not allowed
-                    return element;
+                    throw this.error(ErrorKey.COMPOUND_KEY);
                 }
 
                 var map = new EsonMap();
 
                 if (map.put(((EsonPrimitive) pair.a).stringValue(), pair.b) != null) {
-                    // todo: error: duplicate map key
+                    this.error(ErrorKey.DUPLICATE_KEY, this.lexeme);
                 }
 
                 this.endMap(map, false);
@@ -86,19 +87,16 @@ public class Parser {
                     return new EsonPair(element, this.nextElement0(false));
                 }
 
-                // todo: error: structure key must be primitive but compound type was found
-                throw null;
+                throw this.error(ErrorKey.COMPOUND_STRUCTURE_KEY);
             } else if (this.lexeme.token().primitive()) {
-                // todo: error: primitive right side of pair must be preceded by "="
-                throw null;
+                throw this.error(ErrorKey.PRIMITIVE_RIGHT_NO_MAPPING);
             } else {
                 this.rewind(index);
 
                 if (this.advanceCode()) {
                     if (this.lexeme.token() == Token.MAPPING) {
                         if (this.context == Context.MAP && !primitive) {
-                            // todo: error: map key must be primitive but compound type was found
-                            throw null;
+                            throw this.error(ErrorKey.COMPOUND_KEY);
                         }
 
                         return new EsonPair(element, this.nextElement0(true));
@@ -114,8 +112,7 @@ public class Parser {
 
     private EsonElement nextElement0(boolean advance) {
         if (advance && !this.advanceCode()) {
-            // todo: error: expected element but reached end
-            return null;
+            this.error(ErrorKey.EOF);
         }
 
         return switch (this.lexeme.token()) {
@@ -148,8 +145,7 @@ public class Parser {
                     yield this.nextStructure();
                 }
 
-                // todo: error: element expected but found $lexeme
-                throw null;
+                throw this.error(ErrorKey.WRONG_TOKEN, this.lexeme);
             }
         };
     }
@@ -189,8 +185,7 @@ public class Parser {
         }
 
         if (close) {
-            // todo: error: not closed
-            throw null;
+            this.error(ErrorKey.UNCLOSED_ARRAY);
         }
     }
 
@@ -205,16 +200,14 @@ public class Parser {
             if (element instanceof EsonPair pair) {
                 map.put(((EsonPrimitive) pair.a).stringValue(), pair.b);
             } else {
-                // todo: error: pair expected but single element found
-                throw null;
+                this.error(ErrorKey.NO_VALUE);
             }
 
             this.consumeSeparator(true);
         }
 
         if (close) {
-            // todo: error: not closed
-            throw null;
+            this.error(ErrorKey.UNCLOSED_MAP);
         }
     }
 
@@ -233,7 +226,7 @@ public class Parser {
                 var index = this.iterator.nextIndex();
 
                 if (this.advanceCode() && this.lexeme.token() == Token.COMMA) {
-                    // todo: error: consecutive commas not allowed
+                    throw this.error(ErrorKey.CONSECUTIVE_COMMA);
                 } else {
                     this.rewind(index);
                 }
@@ -248,7 +241,7 @@ public class Parser {
             }
 
             if (error) {
-                // todo: error: expected [\n,] or structure end but found $lexeme
+                throw this.error(ErrorKey.NO_SEPARATOR);
             }
         }
 
@@ -279,10 +272,13 @@ public class Parser {
         this.lexeme = this.iterator.next();
 
         if (this.lexeme.token().end() && this.context.end() != this.lexeme.token()) {
-            // todo: error: delimiter does not match enclosing context
-            throw null;
+            throw this.error(ErrorKey.END_OUT_OF_CONTEXT, this.lexeme.token().character());
         }
 
         return this.lexeme;
+    }
+
+    private SyntaxException error(ErrorKey error, Object... arguments) {
+        throw new SyntaxException(this.lexeme.position(), error, arguments);
     }
 }

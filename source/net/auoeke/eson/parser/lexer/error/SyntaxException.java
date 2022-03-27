@@ -5,15 +5,17 @@ public class SyntaxException extends RuntimeException {
 
     private final String position;
     private final ErrorKey error;
+    private final Object[] arguments;
 
-    public SyntaxException(String position, ErrorKey error) {
+    public SyntaxException(String position, ErrorKey error, Object... arguments) {
         super((String) null);
 
         this.position = position;
         this.error = error;
+        this.arguments = arguments;
     }
 
     @Override public String getMessage() {
-        return this.error.template.formatted(this.source == null ? this.position : this.source + ':' + this.position);
+        return (this.source == null ? "" : this.source + ':') + this.position + ' ' + this.error.template.formatted(this.arguments);
     }
 }

@@ -1,13 +1,21 @@
 package net.auoeke.eson.parser.lexer.error;
 
 public enum ErrorKey {
-    NO_SEPARATOR("%s: Expected a separator."),
-    NO_MAPPING("%s: Every key in a map must be followed by an assignment, an array or a map."),
-    RBRACE_OUTSIDE_MAP("%s: Found '}' outside a map."),
-    RBRACKET_OUTSIDE_ARRAY("%s: Found ']' outside an array."),
-    UNCLOSED_STRING("%s: The string is not closed."),
-    UNCLOSED_MAP("%s: Map is not closed."),
-    UNCLOSED_ARRAY("%s: Array is not closed.");
+    COMPOUND_KEY("Compound map keys are not allowed."),
+    COMPOUND_STRUCTURE_KEY("Structure keys must be primitive."),
+    CONSECUTIVE_COMMA("Consecutive commas are not allowed."),
+    DUPLICATE_KEY("Duplicate map key \"%s\"."),
+    EOF("Premature end of file."),
+    END_OUT_OF_CONTEXT("Delimiter '%s' does not match enclosing context."),
+    NO_SEPARATOR("Expected a separator."),
+    NO_VALUE("Map key is not followed by assignment, array or map."),
+    PRIMITIVE_RIGHT_NO_MAPPING("Primitive right side of pair must be preceded by '='."),
+    RBRACE_OUTSIDE_MAP("Found '}' outside a map."),
+    RBRACKET_OUTSIDE_ARRAY("Found ']' outside an array."),
+    UNCLOSED_ARRAY("Array is not closed."),
+    UNCLOSED_MAP("Map is not closed."),
+    UNCLOSED_STRING("String is not closed."),
+    WRONG_TOKEN("Expected the beginning of an element but found \"%s\".");
 
     public final String template;
 

@@ -29,10 +29,10 @@ import net.auoeke.reflect.Classes;
 
 public class Eson {
     private final Map<Class<?>, PolymorphicToEsonAdapter<?, ?>> toEsonAdapters = new HashMap<>();
-    private final List<PolymorphicToEsonAdapter<?, ?>> polymorphicToEsonAdapters = new ArrayList<>();
-    private final Map<Class<?>, PolymorphicToEsonAdapter<?, ?>> cachedToEsonAdapters = new HashMap<>();
     private final Map<AdapterKey, PolymorphicFromEsonAdapter<?, ?>> fromEsonAdapters = new HashMap<>();
+    private final List<PolymorphicToEsonAdapter<?, ?>> polymorphicToEsonAdapters = new ArrayList<>();
     private final Map<Class<? extends EsonElement>, List<PolymorphicFromEsonAdapter<?, ?>>> polymorphicFromEsonAdapters = new LinkedHashMap<>();
+    private final Map<Class<?>, PolymorphicToEsonAdapter<?, ?>> cachedToEsonAdapters = new HashMap<>();
     private final Map<AdapterKey, PolymorphicFromEsonAdapter<?, ?>> cachedFromEsonAdapters = new HashMap<>();
     private final EsonSerializer adapter = new EsonSerializer("    ");
 
