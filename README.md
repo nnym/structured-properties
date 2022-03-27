@@ -7,10 +7,8 @@
   - `+3`
 - A **float** is a decimal rational number with optional order of magnitude
 and possibly a leading or trailing radix point.
-  - `3.141592653589793238462643383279502884197169399`
-  - `.0`
-  - `-123.`
-  - `1e6`
+  - `-3.141592653589793238462643383279502884197169399`
+  - `123.4e6`
 - A **string** is either
   - a sequence of characters that are not reserved for other tokens that is terminated by a newline or comma or
     - <code>//# Quotation marks ("), apostrophes (') and backticks (`) are included. :^)</code>
