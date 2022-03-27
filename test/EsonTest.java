@@ -1,4 +1,3 @@
-import java.io.StringWriter;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 import net.auoeke.eson.Eson;
@@ -19,6 +18,8 @@ class EsonTest {
         // var stuffEson = eson.toEson(stuff);
         // var newStuff = eson.fromEson(Stuff.class, stuffEson);
         // eson.serialize(System.out, stuffEson);
+
+        Eson.parse("a = 1");
 
         var bp = true;
     }

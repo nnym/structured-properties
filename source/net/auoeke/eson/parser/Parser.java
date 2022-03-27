@@ -41,6 +41,22 @@ public class Parser {
 
         var element = this.nextElement(false);
 
+        if (element instanceof EsonPair pair) {
+            if (!pair.a.type().primitive()) {
+                throw this.error(ErrorKey.COMPOUND_KEY);
+            }
+
+            var map = new EsonMap();
+
+            if (map.put(((EsonPrimitive) pair.a).stringValue(), pair.b) != null) {
+                this.error(ErrorKey.DUPLICATE_KEY, this.lexeme);
+            }
+
+            this.endMap(map, false);
+
+            return map;
+        }
+
         if (element != null && this.consumeSeparator(false)) {
             if (this.lexeme.token() == Token.NEWLINE) {
                 if (this.advanceCode()) {
@@ -48,22 +64,6 @@ public class Parser {
                 } else {
                     return element;
                 }
-            }
-
-            if (element instanceof EsonPair pair) {
-                if (!pair.a.type().primitive()) {
-                    throw this.error(ErrorKey.COMPOUND_KEY);
-                }
-
-                var map = new EsonMap();
-
-                if (map.put(((EsonPrimitive) pair.a).stringValue(), pair.b) != null) {
-                    this.error(ErrorKey.DUPLICATE_KEY, this.lexeme);
-                }
-
-                this.endMap(map, false);
-
-                return map;
             }
 
             var array = new EsonArray();
@@ -112,7 +112,7 @@ public class Parser {
 
     private EsonElement nextElement0(boolean advance) {
         if (advance && !this.advanceCode()) {
-            this.error(ErrorKey.EOF);
+            throw this.error(ErrorKey.EOF);
         }
 
         return switch (this.lexeme.token()) {

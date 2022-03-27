@@ -61,9 +61,8 @@ key = value
 question = Remember properties?
 ```
 ```
-## This file represents a pair.
+## This file represents a map.
 autosave interval = 5
-## Adding another element here would produce a map.
 ```
 
 ### Comments
