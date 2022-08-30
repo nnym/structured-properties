@@ -41,6 +41,10 @@ public enum Token {
         return this == MAPPING;
     }
 
+    public boolean newline() {
+        return this == NEWLINE;
+    }
+
     public boolean whitespace() {
         return this == WHITESPACE || this == NEWLINE;
     }
