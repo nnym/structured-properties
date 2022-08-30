@@ -141,37 +141,31 @@ public class Parser {
                 };
             }
             default -> {
-                if (this.lexeme.token().begin()) {
-                    yield this.nextStructure();
-                }
+                var context = this.context;
 
-                throw this.error(ErrorKey.WRONG_TOKEN, this.lexeme);
+                var structure = switch (this.lexeme.token()) {
+                    case ARRAY_BEGIN -> {
+                        this.context = Context.ARRAY;
+                        var array = new EsonArray();
+                        this.endArray(array, true);
+
+                        yield array;
+                    }
+                    case MAP_BEGIN -> {
+                        this.context = Context.MAP;
+                        var map = new EsonMap();
+                        this.endMap(map, true);
+
+                        yield map;
+                    }
+                    default -> throw this.error(ErrorKey.WRONG_TOKEN, this.lexeme);
+                };
+
+                this.context = context;
+
+                yield structure;
             }
         };
-    }
-
-    private EsonElement nextStructure() {
-        var context = this.context;
-
-        switch (this.lexeme.token()) {
-            case ARRAY_BEGIN -> {
-                this.context = Context.ARRAY;
-                var array = new EsonArray();
-                this.endArray(array, true);
-                this.context = context;
-
-                return array;
-            }
-            case MAP_BEGIN -> {
-                this.context = Context.MAP;
-                var map = new EsonMap();
-                this.endMap(map, true);
-                this.context = context;
-
-                return map;
-            }
-            default -> throw new IllegalArgumentException(this.lexeme.token().toString());
-        }
     }
 
     private void endArray(EsonArray array, boolean close) {
