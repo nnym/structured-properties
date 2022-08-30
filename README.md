@@ -1,3 +1,5 @@
+csf is a **c**oncise **s**erialization **f**ormat whose goal is to be denser and easier to write and read than JSON.
+
 ### Primitive elements
 - A **null** element indicates an absence of a value and is represented as `null`.
 - A **Boolean** element is represented as `true` or `false`.
