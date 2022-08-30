@@ -107,7 +107,7 @@ public class Parser {
                 };
             }
             default -> {
-                var context1 = this.context;
+                var context = this.context;
 
                 var structure = switch (this.lexeme.token()) {
                     case ARRAY_BEGIN -> {
@@ -127,7 +127,7 @@ public class Parser {
                     default -> throw this.error(ErrorKey.ILLEGAL_TOKEN, this.lexeme);
                 };
 
-                this.context = context1;
+                this.context = context;
 
                 yield structure;
             }
