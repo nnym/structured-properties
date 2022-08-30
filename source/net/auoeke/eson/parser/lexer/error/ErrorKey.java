@@ -7,6 +7,7 @@ public enum ErrorKey {
     DUPLICATE_KEY("Duplicate map key \"%s\"."),
     EOF("Premature end of file."),
     END_OUT_OF_CONTEXT("Delimiter '%s' does not match enclosing context."),
+    ILLEGAL_TOKEN("Expected the beginning of an element but found \"%s\"."),
     NO_SEPARATOR("Expected a separator."),
     NO_VALUE("Map key is not followed by assignment, array or map."),
     PRIMITIVE_RIGHT_NO_MAPPING("Primitive right side of pair must be preceded by '='."),
@@ -14,8 +15,7 @@ public enum ErrorKey {
     RBRACKET_OUTSIDE_ARRAY("Found ']' outside an array."),
     UNCLOSED_ARRAY("Array is not closed."),
     UNCLOSED_MAP("Map is not closed."),
-    UNCLOSED_STRING("String is not closed."),
-    WRONG_TOKEN("Expected the beginning of an element but found \"%s\".");
+    UNCLOSED_STRING("String is not closed.");
 
     public final String template;
 

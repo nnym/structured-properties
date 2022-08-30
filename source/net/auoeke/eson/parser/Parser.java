@@ -77,45 +77,11 @@ public class Parser {
     }
 
     private EsonElement nextElement(boolean advance) {
-        var element = this.nextElement0(advance);
-        var primitive = element.type().primitive();
-        var index = this.iterator.nextIndex();
-
-        if (this.advance()) {
-            if (this.lexeme.token().begin()) {
-                if (primitive) {
-                    return new EsonPair(element, this.nextElement0(false));
-                }
-
-                throw this.error(ErrorKey.COMPOUND_STRUCTURE_KEY);
-            } else if (this.lexeme.token().primitive()) {
-                throw this.error(ErrorKey.PRIMITIVE_RIGHT_NO_MAPPING);
-            } else {
-                this.rewind(index);
-
-                if (this.advanceCode()) {
-                    if (this.lexeme.token() == Token.MAPPING) {
-                        if (this.context == Context.MAP && !primitive) {
-                            throw this.error(ErrorKey.COMPOUND_KEY);
-                        }
-
-                        return new EsonPair(element, this.nextElement0(true));
-                    }
-                }
-            }
-        }
-
-        this.rewind(index);
-
-        return element;
-    }
-
-    private EsonElement nextElement0(boolean advance) {
         if (advance && !this.advanceCode()) {
             throw this.error(ErrorKey.EOF);
         }
 
-        return switch (this.lexeme.token()) {
+        var element = switch (this.lexeme.token()) {
             case STRING -> {
                 var string = (StringLexeme) this.lexeme;
 
@@ -141,7 +107,7 @@ public class Parser {
                 };
             }
             default -> {
-                var context = this.context;
+                var context1 = this.context;
 
                 var structure = switch (this.lexeme.token()) {
                     case ARRAY_BEGIN -> {
@@ -158,14 +124,46 @@ public class Parser {
 
                         yield map;
                     }
-                    default -> throw this.error(ErrorKey.WRONG_TOKEN, this.lexeme);
+                    default -> throw this.error(ErrorKey.ILLEGAL_TOKEN, this.lexeme);
                 };
 
-                this.context = context;
+                this.context = context1;
 
                 yield structure;
             }
         };
+
+        var index = this.iterator.nextIndex();
+
+        if (this.advance()) {
+            var primitive = element.type().primitive();
+
+            if (this.lexeme.token().begin()) {
+                if (primitive) {
+                    return new EsonPair(element, this.nextElement(false));
+                }
+
+                throw this.error(ErrorKey.COMPOUND_STRUCTURE_KEY);
+            } else if (this.lexeme.token().primitive()) {
+                throw this.error(ErrorKey.PRIMITIVE_RIGHT_NO_MAPPING);
+            } else {
+                this.rewind(index);
+
+                if (this.advanceCode()) {
+                    if (this.lexeme.token() == Token.MAPPING) {
+                        if (this.context == Context.MAP && !primitive) {
+                            throw this.error(ErrorKey.COMPOUND_KEY);
+                        }
+
+                        return new EsonPair(element, this.nextElement(true));
+                    }
+                }
+            }
+        }
+
+        this.rewind(index);
+
+        return element;
     }
 
     private void endArray(EsonArray array, boolean close) {
