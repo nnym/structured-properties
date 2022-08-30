@@ -37,11 +37,11 @@ and possibly a leading or trailing radix point.
         element 1
     ]
     ```
-- A **map** is a sequence of pairs separated by `\n` or `,` whose left elements are primitive and enclosed in `{}`.
+- A **map** is a sequence enclosed in `{}` of pairs with primitive keys and that are separated by `\n` or `,`.
   - `{key 0 = value 0, key 1 = value 1}`
   - ```
     {
-        color = dark gray
+        color = dark gray, length = 40
         pocket [wallet, phone]
     }
     ```
