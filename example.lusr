@@ -30,12 +30,8 @@ buildscript {
 name = lusr
 version = 1.2.3
 description = '
-    "lusr" is an acronym as defined below.
-    concise
-    serialization
-    format
-
-    lusr is intended to be a human-readable and human-writable alternative to popular serialization languages like JSON.
+    lusr supports
+    multi-line comments
 '
 
 repositories [
