@@ -1,4 +1,4 @@
-csf is a **c**oncise **s**erialization **f**ormat whose goal is to be denser and easier to write and read than JSON.
+Lusr is a **lu**cid **s**e**r**ialization format whose goal is to be a denser and more writable and readable alternative to JSON.
 
 ### Primitive elements
 - A **null** element indicates an absence of a value and is represented as `null`.
