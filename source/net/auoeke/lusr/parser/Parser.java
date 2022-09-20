@@ -52,6 +52,7 @@ public class Parser {
                 this.error(ErrorKey.DUPLICATE_KEY, this.lexeme);
             }
 
+            this.consumeSeparator(false);
             this.endMap(map, false);
 
             return map;
