@@ -1,0 +1,8 @@
+plugins {
+    id("java")
+    id("net.auoeke.gronk")
+}
+
+dependencies {
+    implementation(rootProject)
+}

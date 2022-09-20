@@ -1,12 +1,14 @@
 plugins {
     id("java")
     id("maven-publish")
-    id("gronk").version("latest.release")
+    id("signing")
+    id("net.auoeke.gronk").version("latest.release")
 }
 
 group("net.auoeke")
-version("0.4.0")
-
+version("0.4.1")
+description("a lucid serialization format")
+url("https://github.com/auoeke/lusr")
 javaVersion(17)
 
 gronk {
@@ -22,7 +24,10 @@ sourceSets {
 dependencies {
     implementation("net.auoeke:reflect")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
+    testImplementation(
+        // project(":experimental"),
+        "org.junit.jupiter:junit-jupiter-api"
+    )
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
@@ -30,11 +35,39 @@ test {
     useJUnitPlatform()
 }
 
+java {
+    withJavadocJar()
+}
+
 publishing {
     repositories {
-        maven("maven.auoeke.net") {
-            username(systemProperty("maven.username"))
-            password(systemProperty("maven.password"))
+        maven(findProperty("maven.repository")) {
+            username(findProperty("maven.username"))
+            password(findProperty("maven.password"))
         }
     }
+
+    publications.withType(MavenPublication) {MavenPublication publication ->
+        publication.pom {
+            licenses {
+                license {
+                    url.set("https://raw.githubusercontent.com/auoeke/gronk/master/LICENSE")
+                }
+            }
+
+            developers {
+                developer {
+                    id.set("auoeke")
+                    email.set("me@auoeke.net")
+                }
+            }
+
+            scm {
+                connection.set("scm:git:git://github.com/auoeke/lusr.git")
+                developerConnection.set("scm:git:git://github.com/auoeke/lusr.git")
+                url.set("https://github.com/auoeke/lusr/tree/master")
+            }
+        }
+    }
+
 }
