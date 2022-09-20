@@ -72,29 +72,29 @@ public class Lusr {
         this.adaptBase(Map.class, LusrMap.class, MapAdapter.instance);
     }
 
-    public static LusrElement parse(String lusr, Option... options) {
-        return new Parser(lusr, options).parse();
+    public static LusrElement parse(String source, Option... options) {
+        return new Parser(source, options).parse();
     }
 
-    public static LusrElement parse(byte[] lusr) {
-        return parse(new String(lusr));
+    public static LusrElement parse(byte[] source) {
+        return parse(new String(source));
     }
 
-    public static LusrElement parseResource(URL lusr) {
-        return parseResource(lusr, "file".equals(lusr.getProtocol()) ? lusr.getPath() : lusr.toString());
+    public static LusrElement parseResource(URL source) {
+        return parseResource(source, "file".equals(source.getProtocol()) ? source.getPath() : source.toString());
     }
 
-    public static LusrElement parseResource(Path lusr) {
-        return parseResource(lusr.toUri().toURL(), lusr.toString());
+    public static LusrElement parseResource(Path source) {
+        return parseResource(source.toUri().toURL(), source.toString());
     }
 
-    private static LusrElement parseResource(URL lusr, String source) {
+    private static LusrElement parseResource(URL source, String location) {
         try {
-            try (var stream = lusr.openStream()) {
+            try (var stream = source.openStream()) {
                 return parse(stream.readAllBytes());
             }
         } catch (SyntaxException exception) {
-            exception.source = source;
+            exception.source = location;
 
             throw exception;
         }
@@ -184,16 +184,17 @@ public class Lusr {
     }
 
     public Object fromLusr(LusrElement element) {
-        if (element == LusrNull.instance) return null;
-        if (element instanceof LusrBoolean boolea) return this.fromLusr(boolea);
-        if (element instanceof LusrInteger integer) return this.fromLusr(integer);
-        if (element instanceof LusrFloat floa) return this.fromLusr(floa);
-        if (element instanceof LusrString string) return this.fromLusr(string);
-        if (element instanceof LusrArray array) return this.fromLusr(array);
-        if (element instanceof LusrMap map) return this.fromLusr(map);
-        if (element instanceof LusrPair pair) return this.fromLusr(pair);
-
-        return null;
+        // @formatter:off
+        return element == LusrNull.instance ? null
+             : element instanceof LusrBoolean boolea ? this.fromLusr(boolea)
+             : element instanceof LusrInteger integer ? this.fromLusr(integer)
+             : element instanceof LusrFloat floa ? this.fromLusr(floa)
+             : element instanceof LusrString string ? this.fromLusr(string)
+             : element instanceof LusrArray array ? this.fromLusr(array)
+             : element instanceof LusrMap map ? this.fromLusr(map)
+             : element instanceof LusrPair pair ? this.fromLusr(pair)
+             : null;
+        // @formatter:on
     }
 
     public boolean fromLusr(LusrBoolean boolea) {
@@ -239,7 +240,7 @@ public class Lusr {
             .orElseGet(() -> Classes.cast(this.polymorphicToLusrAdapters.stream()
                 .filter(adapter -> adapter.accept(type))
                 .reduce((a, b) -> b)
-            .orElseThrow(() -> new IllegalArgumentException("no %s -> lusr adapter was found".formatted(type.getName())))))
+                .orElseThrow(() -> new IllegalArgumentException("no %s -> lusr adapter was found".formatted(type.getName())))))
         );
     }
 
