@@ -1,4 +1,5 @@
-Lusr (/lu:səɹ/) is a **lu**cid **s**e**r**ialization format whose goal is to be a denser and more writable and readable alternative to JSON.
+Structured Properties is approximately a structured version of Java's `Properties`
+whose goal is to be a denser and more writable, readable and lucid alternative to JSON.
 
 ### Primitive elements
 - A **null** element indicates an absence of a value and is represented as `null`.
