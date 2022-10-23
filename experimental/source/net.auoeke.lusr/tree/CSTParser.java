@@ -4,32 +4,26 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import net.auoeke.lusr.Lusr;
 import net.auoeke.lusr.element.LusrArray;
 import net.auoeke.lusr.element.LusrBoolean;
-import net.auoeke.lusr.element.LusrElement;
 import net.auoeke.lusr.element.LusrFloat;
 import net.auoeke.lusr.element.LusrInteger;
-import net.auoeke.lusr.element.LusrMap;
 import net.auoeke.lusr.element.LusrNull;
-import net.auoeke.lusr.element.LusrPair;
-import net.auoeke.lusr.element.LusrPrimitive;
 import net.auoeke.lusr.element.LusrString;
 import net.auoeke.lusr.parser.Context;
 import net.auoeke.lusr.parser.lexer.LexemeIterator;
 import net.auoeke.lusr.parser.lexer.Lexer;
 import net.auoeke.lusr.parser.lexer.error.ErrorKey;
-import net.auoeke.lusr.parser.lexer.error.SyntaxException;
-import net.auoeke.lusr.parser.lexer.lexeme.CommentLexeme;
 import net.auoeke.lusr.parser.lexer.lexeme.Lexeme;
 import net.auoeke.lusr.parser.lexer.lexeme.StringLexeme;
 import net.auoeke.lusr.parser.lexer.lexeme.Token;
 
 @SuppressWarnings("DuplicatedCode")
 public class CSTParser {
-    private final LexemeIterator iterator;
-    private Context context = Context.FILE;
-    private Lexeme lexeme;
+	private final List<Error> errors = new ArrayList<>();
+	private final LexemeIterator iterator;
+	private Context context = Context.FILE;
+	private Lexeme lexeme;
 
     public CSTParser(String lusr) {
         this.iterator = new Lexer(lusr).iterator();
@@ -38,43 +32,36 @@ public class CSTParser {
     public SourceUnit parse() {
         var source = new SourceUnit();
 
-        parse: if (this.advanceCode()) {
+        if (this.advanceCode()) {
             var element = this.nextElement(false);
 
-            if (element instanceof PairTree pair) {
-                if (!pair.a.type().primitive()) {
-                    throw this.error(ErrorKey.COMPOUND_KEY);
-                }
+			if (element != null) {
+				if (element instanceof PairTree pair) {
+				    if (!pair.a.isPrimitive()) {
+				        this.error(ErrorKey.COMPOUND_KEY);
+				    }
 
-                var map = new LusrMap();
+				    var map = new MapTree();
+				    this.endMap(map, false);
+				    source.add(map);
+				} else if (this.consumeSeparator(false)) {
+				    if (this.lexeme.token().newline()) {
+				        if (this.advanceCode()) {
+				            this.iterator.previous();
+				        } else {
+							source.add(element);
+				            return source;
+				        }
+				    }
 
-                if (map.put(((LusrPrimitive) pair.a).stringValue(), pair.b) != null) {
-                    this.error(ErrorKey.DUPLICATE_KEY, this.lexeme);
-                }
-
-                this.endMap(map, false);
-
-                source.add(map);
-                return map;
-            }
-
-            if (element != null && this.consumeSeparator(false)) {
-                if (this.lexeme.token() == Token.NEWLINE) {
-                    if (this.advanceCode()) {
-                        this.iterator.previous();
-                    } else {
-                        return element;
-                    }
-                }
-
-                var array = new LusrArray();
-                array.add(element);
-                this.endArray(array, false);
-
-                return array;
-            }
-
-            return element;
+				    var array = new ArrayTree();
+				    array.add(element);
+				    this.endArray(array, false);
+				    source.add(array);
+				} else {
+					source.add(element);
+				}
+			}
         }
 
         return source;
@@ -82,33 +69,36 @@ public class CSTParser {
 
     private Node nextElement(boolean advance) {
         if (advance && !this.advanceCode()) {
-            throw this.error(ErrorKey.EOF);
+            this.error(ErrorKey.EOF, Error.Offset.AFTER);
+			return null;
         }
 
         var element = switch (this.lexeme.token()) {
             case STRING -> {
                 var string = (StringLexeme) this.lexeme;
 
-                if (string.delimiter != null) {
-                    yield new LusrString(string.value, string.delimiter);
-                }
-
-                yield switch (string.value) {
-                    case "false" -> LusrBoolean.of(false);
-                    case "true" -> LusrBoolean.of(true);
-                    case "null" -> LusrNull.instance;
+                switch (string.value) {
+                    case "false" -> {
+						yield new BooleanNode(false);
+					}
+                    case "true" -> {
+						yield new BooleanNode(true);
+					}
+                    case "null" -> {
+						yield new NullNode();
+					}
                     default -> {
                         try {
-                            yield new LusrInteger(string.value, new BigInteger(string.value));
+                            yield new IntegerNode(string.value, new BigInteger(string.value));
                         } catch (NumberFormatException exception) {
                             try {
-                                yield new LusrFloat(string.value, new BigDecimal(string.value));
-                            } catch (NumberFormatException e) {
-                                yield new LusrString(string.value, string.delimiter);
-                            }
+                                yield new FloatNode(string.value, new BigDecimal(string.value));
+                            } catch (NumberFormatException e) {}
                         }
                     }
-                };
+                }
+
+	            yield new StringNode(string.delimiter, string.value);
             }
             default -> {
                 var context = this.context;
@@ -116,19 +106,23 @@ public class CSTParser {
                 var structure = switch (this.lexeme.token()) {
                     case ARRAY_BEGIN -> {
                         this.context = Context.ARRAY;
-                        var array = new LusrArray();
+                        var array = new ArrayTree();
                         this.endArray(array, true);
 
                         yield array;
                     }
                     case MAP_BEGIN -> {
                         this.context = Context.MAP;
-                        var map = new LusrMap();
+                        var map = new MapTree();
                         this.endMap(map, true);
 
                         yield map;
                     }
-                    default -> throw this.error(ErrorKey.ILLEGAL_TOKEN, this.lexeme);
+                    default -> {
+						this.error(ErrorKey.ILLEGAL_TOKEN, this.lexeme);
+						this.advance();
+						yield null;
+					}
                 };
 
                 this.context = context;
@@ -140,27 +134,27 @@ public class CSTParser {
         var index = this.iterator.nextIndex();
 
         if (this.advance()) {
-            var primitive = element.type().primitive();
+            var primitive = element.isPrimitive();
 
             if (this.lexeme.token().begin()) {
                 if (primitive) {
-                    return new LusrPair(element, this.nextElement(false));
+	                return new PairTree(element, this.nextElement(false));
                 }
 
-                throw this.error(ErrorKey.COMPOUND_STRUCTURE_KEY);
+                this.error(ErrorKey.COMPOUND_STRUCTURE_KEY);
             } else if (this.lexeme.token().primitive()) {
-                throw this.error(ErrorKey.PRIMITIVE_RIGHT_NO_MAPPING);
-            } else {
-                this.rewind(index);
+                this.error(ErrorKey.PRIMITIVE_RIGHT_NO_MAPPING, Error.Offset.BEFORE);
+            }
 
-                if (this.advanceCode()) {
-                    if (this.lexeme.token() == Token.MAPPING) {
-                        if (this.context == Context.MAP && !primitive) {
-                            throw this.error(ErrorKey.COMPOUND_KEY);
-                        }
+            this.rewind(index);
 
-                        return new LusrPair(element, this.nextElement(true));
+            if (this.advanceCode()) {
+                if (this.lexeme.token() == Token.MAPPING) {
+                    if (this.context == Context.MAP && !primitive) {
+                        this.error(ErrorKey.COMPOUND_KEY);
                     }
+
+	                return new PairTree(element, this.nextElement(true));
                 }
             }
         }
@@ -170,13 +164,13 @@ public class CSTParser {
         return element;
     }
 
-    private void endArray(LusrArray array, boolean close) {
+    private void endArray(ArrayTree array, boolean close) {
         while (this.advanceCode()) {
             if (this.lexeme.token() == this.context.end()) {
                 return;
             }
 
-            array.add(this.nextElement(false));
+            array.element(this.nextElement(false));
             this.consumeSeparator(true);
         }
 
@@ -185,7 +179,7 @@ public class CSTParser {
         }
     }
 
-    private void endMap(LusrMap map, boolean close) {
+    private void endMap(MapTree map, boolean close) {
         while (this.advanceCode()) {
             if (this.lexeme.token() == Token.MAP_END) {
                 return;
@@ -193,8 +187,10 @@ public class CSTParser {
 
             var element = this.nextElement(false);
 
-            if (element instanceof LusrPair pair) {
-                map.put(((LusrPrimitive) pair.a).stringValue(), pair.b);
+            if (element instanceof PairTree pair) {
+	            if (map.entry(pair) != null) {
+		            this.error(ErrorKey.DUPLICATE_KEY, this.lexeme);
+	            }
             } else {
                 this.error(ErrorKey.NO_VALUE);
             }
@@ -212,20 +208,18 @@ public class CSTParser {
         this.lexeme = this.iterator.next();
     }
 
-    private boolean consumeSeparator(boolean error) {
+    private boolean consumeSeparator(boolean require) {
         if (this.advance()) {
-            if (this.lexeme.token() == Token.NEWLINE) {
+            if (this.lexeme.token().newline()) {
                 return true;
             }
 
             if (this.lexeme.token() == Token.COMMA) {
-                var index = this.iterator.nextIndex();
-
-                if (this.advanceCode() && this.lexeme.token() == Token.COMMA) {
-                    throw this.error(ErrorKey.CONSECUTIVE_COMMA);
-                } else {
-                    this.rewind(index);
+                while (this.advanceCode() && this.lexeme.token() == Token.COMMA) {
+                    this.error(ErrorKey.CONSECUTIVE_COMMA);
                 }
+
+	            this.rewind(this.iterator.previousIndex());
 
                 return true;
             }
@@ -236,8 +230,8 @@ public class CSTParser {
                 return true;
             }
 
-            if (error) {
-                throw this.error(ErrorKey.NO_SEPARATOR);
+            if (require) {
+                this.error(ErrorKey.NO_SEPARATOR, Error.Offset.BEFORE);
             }
         }
 
@@ -254,6 +248,15 @@ public class CSTParser {
         return false;
     }
 
+	private boolean advanceAny() {
+		if (this.iterator.hasNext()) {
+			this.next();
+			return true;
+		}
+
+		return false;
+	}
+
     private boolean advance() {
         while (this.iterator.hasNext()) {
             if (!this.next().token().sourceOnly()) {
@@ -268,13 +271,18 @@ public class CSTParser {
         this.lexeme = this.iterator.next();
 
         if (this.lexeme.token().end() && this.context.end() != this.lexeme.token()) {
-            throw this.error(ErrorKey.END_OUT_OF_CONTEXT, this.lexeme.token().character());
+            this.error(ErrorKey.END_OUT_OF_CONTEXT, this.lexeme.token().character());
+			return this.advanceAny() ? this.lexeme : null;
         }
 
         return this.lexeme;
     }
 
-    private SyntaxException error(ErrorKey error, Object... arguments) {
-        throw new SyntaxException(this.lexeme.position(), error, arguments);
+	private void error(ErrorKey error, Object... arguments) {
+		this.error(error, Error.Offset.NONE, arguments);
+	}
+
+    private void error(ErrorKey error, Error.Offset offset, Object... arguments) {
+        this.errors.add(new Error(this.lexeme, offset, error, arguments));
     }
 }

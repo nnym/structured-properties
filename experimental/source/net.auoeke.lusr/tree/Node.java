@@ -33,7 +33,7 @@ public abstract class Node {
         this.previous = previous;
     }
 
-    void insertNext(Node next) {
+    public void insertNext(Node next) {
         var oldNext = this.next();
         this.next(next);
         next.previous(this);
@@ -44,7 +44,7 @@ public abstract class Node {
         }
     }
 
-    void insertPrevious(Node previous) {
+    public void insertPrevious(Node previous) {
         var oldPrevious = this.previous();
         this.previous(previous);
         previous.previous(oldPrevious);
@@ -55,10 +55,18 @@ public abstract class Node {
         }
     }
 
-    void remove() {
+    public void remove() {
         this.parent().remove(this);
         this.parent(null);
         this.previous(null);
         this.next(null);
     }
+
+	public boolean isValue() {
+		return false;
+	}
+
+	public boolean isPrimitive() {
+		return false;
+	}
 }
