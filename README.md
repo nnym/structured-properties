@@ -1,4 +1,4 @@
-Structured Properties is approximately a structured version of Java's `Properties`
+Structured Properties is approximately a typed and structured version of Java's `Properties`
 whose goal is to be a denser and more writable, readable and lucid alternative to JSON.
 
 ### Primitive elements
