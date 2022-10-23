@@ -27,11 +27,11 @@ buildscript {
     }
 }
 
-name = lusr
+name = Structured Properties
 version = 1.2.3
 description = '
-    lusr supports
-    multi-line comments
+    Structured Properties supports
+    multi-line strings
 '
 
 repositories [

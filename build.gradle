@@ -7,8 +7,7 @@ plugins {
 
 group("net.auoeke")
 version("0.4.1")
-description("a lucid serialization format")
-url("https://github.com/auoeke/lusr")
+description("Properties with structure and types")
 javaVersion(17)
 
 gronk {
@@ -49,6 +48,8 @@ publishing {
 
     publications.withType(MavenPublication) {MavenPublication publication ->
         publication.pom {
+	        url.set("https://github.com/auoeke/structured-properties")
+
             licenses {
                 license {
                     url.set("https://raw.githubusercontent.com/auoeke/gronk/master/LICENSE")
@@ -63,9 +64,9 @@ publishing {
             }
 
             scm {
-                connection.set("scm:git:git://github.com/auoeke/lusr.git")
-                developerConnection.set("scm:git:git://github.com/auoeke/lusr.git")
-                url.set("https://github.com/auoeke/lusr/tree/master")
+                connection.set("scm:git:git://github.com/auoeke/structured-properties.git")
+                developerConnection.set("scm:git:git://github.com/auoeke/structured-properties.git")
+                url.set("https://github.com/auoeke/structured-properties/tree/master")
             }
         }
     }

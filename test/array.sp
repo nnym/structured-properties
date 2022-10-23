@@ -10,10 +10,10 @@ c
     gazillion,
     true,
     false
-    System.out.println("array.lusr")
+    System.out.println("array.sp")
     ```
     public static void main(String... args) {
-        System.out.println("array.lusr")
+        System.out.println("array.sp")
     }
     ```
     null,
