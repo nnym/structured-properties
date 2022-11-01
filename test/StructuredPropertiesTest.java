@@ -13,10 +13,10 @@ class StructuredPropertiesTest {
 	@Test void test() {
 		var lexer = new Lexer("[a ##comment\n]", StructuredProperties.Option.RETAIN_WHITESPACE, StructuredProperties.Option.RETAIN_COMMENTS);
 		var loader = this.getClass().getClassLoader();
-		var string = StructuredProperties.parseResource(loader.getResource("string.sp"));
-		var array = StructuredProperties.parseResource(loader.getResource("array.sp"));
-		var map = StructuredProperties.parseResource(loader.getResource("map.sp"));
-		var example = StructuredProperties.parseResource(Path.of("example.sp"));
+		var string = StructuredProperties.parseResource(loader.getResource("string.str"));
+		var array = StructuredProperties.parseResource(loader.getResource("array.str"));
+		var map = StructuredProperties.parseResource(loader.getResource("map.str"));
+		var example = StructuredProperties.parseResource(Path.of("example.str"));
 		var parser = new Parser("][1,,,, {[] a, b = 1, b = 2, c =}, a = } '); drop table users; --");
 		var result = parser.parse();
 		new Parser("''").parse();
