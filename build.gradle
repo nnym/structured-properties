@@ -1,8 +1,8 @@
 plugins {
-    id("java")
-    id("maven-publish")
-    id("signing")
-    id("net.auoeke.gronk").version("latest.release")
+	id("java")
+	id("maven-publish")
+	id("signing")
+	id("net.auoeke.gronk").version("latest.release")
 }
 
 group("net.auoeke")
@@ -11,64 +11,61 @@ description("Properties with structure and types")
 javaVersion(17)
 
 gronk {
-    uncheck()
+	uncheck()
 }
 
 sourceSets {
-    test {
-        resources.srcDir("test")
-    }
+	test {
+		resources.srcDir("test")
+	}
 }
 
 dependencies {
-    implementation("net.auoeke:reflect")
+	implementation("net.auoeke:reflect")
 
-    testImplementation(
-        // project(":experimental"),
-        "org.junit.jupiter:junit-jupiter-api"
-    )
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+	testImplementation("org.junit.jupiter:junit-jupiter-api")
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 test {
-    useJUnitPlatform()
+	useJUnitPlatform()
 }
 
 java {
-    withJavadocJar()
+	withJavadocJar()
 }
 
 publishing {
-    repositories {
-        maven(findProperty("maven.repository")) {
-            username(findProperty("maven.username"))
-            password(findProperty("maven.password"))
-        }
-    }
+	repositories {
+		maven(findProperty("maven.repository")) {
+			username(findProperty("maven.username"))
+			password(findProperty("maven.password"))
+		}
+	}
 
-    publications.withType(MavenPublication) {MavenPublication publication ->
-        publication.pom {
-	        url.set("https://github.com/auoeke/structured-properties")
+	publications.withType(MavenPublication) {
+		pom {
+			url.set("https://github.com/auoeke/structured-properties")
 
-            licenses {
-                license {
-                    url.set("https://raw.githubusercontent.com/auoeke/gronk/master/LICENSE")
-                }
-            }
+			licenses {
+				license {
+					url.set("https://raw.githubusercontent.com/auoeke/gronk/master/LICENSE")
+				}
+			}
 
-            developers {
-                developer {
-                    id.set("auoeke")
-                    email.set("me@auoeke.net")
-                }
-            }
+			developers {
+				developer {
+					id.set("auoeke")
+					email.set("me@auoeke.net")
+				}
+			}
 
-            scm {
-                connection.set("scm:git:git://github.com/auoeke/structured-properties.git")
-                developerConnection.set("scm:git:git://github.com/auoeke/structured-properties.git")
-                url.set("https://github.com/auoeke/structured-properties/tree/master")
-            }
-        }
-    }
+			scm {
+				connection.set("scm:git:git://github.com/auoeke/structured-properties.git")
+				developerConnection.set("scm:git:git://github.com/auoeke/structured-properties.git")
+				url.set("https://github.com/auoeke/structured-properties/tree/master")
+			}
+		}
+	}
 
 }

@@ -2,6 +2,7 @@ Structured Properties is approximately a typed and structured version of Java's 
 whose goal is to be a denser and more writable, readable and lucid alternative to JSON.
 
 ### Primitive elements
+
 - A **null** element indicates an absence of a value and is represented as `null`.
 - A **Boolean** element is represented as `true` or `false`.
 - An **integer** is a decimal integer.
@@ -28,6 +29,7 @@ and possibly a leading or trailing radix point.
       ```
 
 ### Compound elements
+
 - A **pair** comprises 2 elements joined by `=` or a primitive element followed by a structure (array or map).
   - `1.0 = 1`
   - `pocket [wallet, phone]`
@@ -50,23 +52,27 @@ and possibly a leading or trailing radix point.
     ```
 
 Sole top-level structures' delimiters can be omitted:
+
 ```
 ## This file represents an array.
 one
 2
 three
 ```
+
 ```
 ## This file represents a map; not an array of pairs.
 key = value
 question = Remember properties?
 ```
+
 ```
 ## This file represents a map.
 autosave interval = 5
 ```
 
 ### Comments
+
 - A **line comment** starts with `##` and lasts until the next line.
   - `time = 6:00 ## My alarm is set to ring at this time.`
 - A **block comment** starts with `/*`, is terminated by `*/` and can be nested.
