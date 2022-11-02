@@ -1,5 +1,7 @@
-Structured Properties is approximately a typed and structured version of Java's `Properties`
-whose goal is to be a denser and more writable, readable and lucid alternative to JSON.
+Structured Properties is approximately a fusion of JSON and Java's `Properties`
+intended to be a more concise, writable, readable and lucid alternative to serialization formats like JSON.
+
+The preferred extension for Structured Properties files is `str`.
 
 ### Primitive elements
 - A **null** element indicates an absence of a value and is represented as `null`.
