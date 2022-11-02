@@ -8,10 +8,10 @@ import org.junit.platform.commons.annotation.Testable;
 class StructuredPropertiesTest {
     @Test void test() {
         var loader = this.getClass().getClassLoader();
-        var string = StructuredProperties.parseResource(loader.getResource("string.sp"));
-        var array = StructuredProperties.parseResource(loader.getResource("array.sp"));
-        var map = StructuredProperties.parseResource(loader.getResource("map.sp"));
-        var example = StructuredProperties.parseResource(Path.of("example.sp"));
+        var string = StructuredProperties.parseResource(loader.getResource("string.str"));
+        var array = StructuredProperties.parseResource(loader.getResource("array.str"));
+        var map = StructuredProperties.parseResource(loader.getResource("map.str"));
+        var example = StructuredProperties.parseResource(Path.of("example.str"));
 
         var sp = new StructuredProperties();
         // var stuff = new Stuff();
