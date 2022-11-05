@@ -1,14 +1,22 @@
 package net.auoeke.sp.source;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import net.auoeke.sp.StructuredProperties;
+import net.auoeke.sp.source.lexeme.BooleanLexeme;
 import net.auoeke.sp.source.lexeme.CharacterLexeme;
 import net.auoeke.sp.source.lexeme.CommentLexeme;
 import net.auoeke.sp.source.lexeme.EscapedLexeme;
+import net.auoeke.sp.source.lexeme.FloatLexeme;
+import net.auoeke.sp.source.lexeme.IntegerLexeme;
 import net.auoeke.sp.source.lexeme.Lexeme;
+import net.auoeke.sp.source.lexeme.NullLexeme;
 import net.auoeke.sp.source.lexeme.Position;
 import net.auoeke.sp.source.lexeme.StringDelimiterLexeme;
 import net.auoeke.sp.source.lexeme.StringLexeme;
@@ -52,6 +60,10 @@ public class Lexer {
 
 	public Lexeme last() {
 		return this.last;
+	}
+
+	public Stream<Lexeme> lexemes() {
+		return Stream.iterate(this.first, Objects::nonNull, lexeme -> (Lexeme) lexeme.next());
 	}
 
 	private Position position() {
@@ -176,6 +188,7 @@ public class Lexer {
 	private boolean comment() {
 		if (this.match(0, BLOCK_COMMENT)) {
 			this.add(new CommentLexeme(this.position(), Token.BLOCK_COMMENT, buildString(builder -> {
+				this.next();
 				var depth = 1;
 
 				while (this.advance()) {
@@ -268,6 +281,10 @@ public class Lexer {
 			};
 
 			while (this.advance()) {
+				if (builder.isEmpty()) {
+					this.savePosition();
+				}
+
 				if (this.current == delimiter) {
 					var position = this.position();
 					var count = 1;
@@ -292,7 +309,6 @@ public class Lexer {
 						flush.run();
 						builder = new StringBuilder();
 						this.add(new EscapedLexeme(position, this.current));
-						this.savePosition();
 					} else {
 						builder.append(this.current);
 						flush.run();
@@ -340,7 +356,22 @@ public class Lexer {
 			}
 		});
 
-		this.add(new StringLexeme(this.savedPosition, string));
+		this.add(switch (string) {
+			case "false" -> new BooleanLexeme(this.savedPosition, false);
+			case "true" -> new BooleanLexeme(this.savedPosition, true);
+			case "null" -> new NullLexeme(this.savedPosition);
+			default -> {
+				try {
+					yield new IntegerLexeme(this.savedPosition, string, new BigInteger(string));
+				} catch (NumberFormatException exception) {
+					try {
+						yield new FloatLexeme(this.savedPosition, string, new BigDecimal(string));
+					} catch (NumberFormatException e) {
+						yield new StringLexeme(this.savedPosition, string);
+					}
+				}
+			}
+		});
 		additionalWhitespace.forEach(this::add);
 	}
 

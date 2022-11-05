@@ -16,11 +16,7 @@ public final class IntegerLexeme extends Lexeme {
 	}
 
 	@Override public Token token() {
-		return Token.STRING;
-	}
-
-	@Override public boolean is(Token token) {
-		return token == Token.STRING;
+		return Token.INTEGER;
 	}
 
 	@Override public boolean isPrimitive() {

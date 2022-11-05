@@ -16,10 +16,6 @@ public final class CharacterLexeme extends Lexeme {
 		return this.token;
 	}
 
-	@Override public boolean is(Token token) {
-		return token == this.token;
-	}
-
 	@Override public void accept(NodeVisitor visitor) {
 		visitor.visit(this);
 	}

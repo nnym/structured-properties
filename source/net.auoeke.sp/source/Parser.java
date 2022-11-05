@@ -1,18 +1,12 @@
 package net.auoeke.sp.source;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.source.error.Error;
-import net.auoeke.sp.source.lexeme.BooleanLexeme;
-import net.auoeke.sp.source.lexeme.FloatLexeme;
-import net.auoeke.sp.source.lexeme.IntegerLexeme;
 import net.auoeke.sp.source.lexeme.Lexeme;
-import net.auoeke.sp.source.lexeme.NullLexeme;
 import net.auoeke.sp.source.lexeme.StringLexeme;
 import net.auoeke.sp.source.lexeme.Token;
 import net.auoeke.sp.source.tree.ArrayTree;
@@ -182,6 +176,9 @@ public class Parser {
 	private Node value() {
 		for (;;) {
 			switch (this.lexeme.token()) {
+				case BOOLEAN, INTEGER, FLOAT, NULL -> {
+					return this.lexeme;
+				}
 				case STRING_DELIMITER -> {
 					var tree = new StringTree();
 					tree.first(this.lexeme);
@@ -203,17 +200,14 @@ public class Parser {
 				}
 				case STRING -> {
 					var string = (StringLexeme) this.lexeme;
-					var value = this.parseString(string, string.value);
 
-					if (value == string) {
+					if (string == string) {
 						var tree = new StringTree();
 						tree.first(string);
 						tree.last(string);
 
 						return tree;
 					}
-
-					return value;
 				}
 				default -> {
 					var context = this.context;
@@ -252,25 +246,6 @@ public class Parser {
 				}
 			}
 		}
-	}
-
-	private Node parseString(Node string, String value) {
-		return switch (value) {
-			case "false" -> new BooleanLexeme(string.start(), false);
-			case "true" -> new BooleanLexeme(string.start(), true);
-			case "null" -> new NullLexeme(string.start());
-			default -> {
-				try {
-					yield new IntegerLexeme(string.start(), value, new BigInteger(value));
-				} catch (NumberFormatException exception) {
-					try {
-						yield new FloatLexeme(string.start(), value, new BigDecimal(value));
-					} catch (NumberFormatException e) {
-						yield string;
-					}
-				}
-			}
-		};
 	}
 
 	private void endArray(ArrayTree array, boolean close) {

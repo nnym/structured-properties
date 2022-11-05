@@ -16,10 +16,6 @@ public final class StringLexeme extends Lexeme {
 		return Token.STRING;
 	}
 
-	@Override public boolean is(Token token) {
-		return token == Token.STRING;
-	}
-
 	@Override public boolean isPrimitive() {
 		return true;
 	}

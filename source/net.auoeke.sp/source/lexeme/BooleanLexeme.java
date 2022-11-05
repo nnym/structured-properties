@@ -13,11 +13,7 @@ public final class BooleanLexeme extends Lexeme {
 	}
 
 	@Override public Token token() {
-		return Token.STRING;
-	}
-
-	@Override public boolean is(Token token) {
-		return token == Token.STRING;
+		return Token.BOOLEAN;
 	}
 
 	@Override public boolean isValue() {

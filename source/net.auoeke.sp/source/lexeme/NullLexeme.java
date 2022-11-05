@@ -25,11 +25,7 @@ public final class NullLexeme extends Lexeme {
 	}
 
 	@Override public Token token() {
-		return Token.STRING;
-	}
-
-	@Override public boolean is(Token token) {
-		return token == Token.STRING;
+		return Token.NULL;
 	}
 
 	@Override public boolean isPrimitive() {

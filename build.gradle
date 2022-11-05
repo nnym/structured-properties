@@ -5,10 +5,13 @@ plugins {
 	id("net.auoeke.gronk").version("latest.release")
 }
 
-group("net.auoeke")
 version("0.4.1")
 description("Properties with structure and types")
 javaVersion(17)
+
+allprojects {
+	group("net.auoeke")
+}
 
 gronk {
 	uncheck()

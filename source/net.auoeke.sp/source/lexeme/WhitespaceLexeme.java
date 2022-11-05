@@ -16,10 +16,6 @@ public final class WhitespaceLexeme extends Lexeme {
 		return Token.WHITESPACE;
 	}
 
-	@Override public boolean is(Token token) {
-		return token == Token.WHITESPACE;
-	}
-
 	@Override public void accept(NodeVisitor visitor) {
 		visitor.visit(this);
 	}

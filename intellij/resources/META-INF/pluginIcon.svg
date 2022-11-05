@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024">
+    <rect width="1024" height="1024" fill="#2B2D30"/>
+<!--
+    <rect width="1024" height="1" stroke="red"/>
+    <rect width="1" height="1024" stroke="red"/>
+    <rect y="100%" width="1024" height="1" stroke="red"/>
+    <rect x="100%" width="1" height="1024" stroke="red"/>
+-->
+    <text font-family="Fira Code" font-size="224" fill="#FCFCFA">
+        <tspan x="8" y="256">s <tspan fill="#939293">{</tspan></tspan>
+        <tspan x="296" dy="1.4em">t <tspan fill="#939293">=</tspan> r</tspan>
+        <tspan x="8" dy="1.4em"><tspan fill="#939293">}</tspan></tspan>
+    </text>
+</svg>

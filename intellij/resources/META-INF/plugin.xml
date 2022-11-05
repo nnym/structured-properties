@@ -1,0 +1,21 @@
+<idea-plugin url="https://github.com/auoeke/structured-properties">
+    <id>net.auoeke.structured-properties</id>
+    <name>Structured Properties</name>
+    <version>x</version>
+    <vendor url="https://auoeke.net" email="me@auoeke.net">auoeke</vendor>
+    <idea-version since-build="223.7255.1"/>
+    <description>
+        <![CDATA[
+        Syntax highlighting and formatting for <a href="https://github.com/auoeke/structured-properties">Structured Properties</a>.
+</pre>]]>
+    </description>
+    <change-notes>
+        <![CDATA[
+        ]]>
+    </change-notes>
+    <depends>com.intellij.modules.platform</depends>
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType extensions="str" name="Structured Properties" language="Structured Properties" implementationClass="net.auoeke.sp.intellij.SpFileType"/>
+        <lang.syntaxHighlighterFactory language="Structured Properties" implementationClass="net.auoeke.sp.intellij.SpHighlighter$Factory"/>
+    </extensions>
+</idea-plugin>

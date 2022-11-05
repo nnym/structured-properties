@@ -1,0 +1,41 @@
+plugins {
+	id("org.jetbrains.intellij").version("latest.release")
+	id("net.auoeke.gronk").version("latest.release")
+}
+
+version("0.0.0")
+javaVersion(17)
+
+gronk {
+	uncheck()
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation(rootProject)
+}
+
+intellij {
+	version = "IC-LATEST-EAP-SNAPSHOT"
+	pluginName = rootProject.name
+	updateSinceUntilBuild = false
+}
+
+configure([instrumentCode, buildSearchableOptions, jarSearchableOptions]) {
+	enabled = false
+}
+
+jar {
+	archiveBaseName.set(rootProject.name)
+}
+
+runIde {
+	jvmArgs("-Xmx4G")
+}
+
+publishPlugin {
+	token.set(findProperty("intellij.token"))
+}

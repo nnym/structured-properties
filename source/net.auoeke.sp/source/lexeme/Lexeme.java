@@ -14,7 +14,7 @@ public abstract sealed class Lexeme extends Node permits BooleanLexeme, Characte
 
 	public abstract Token token();
 
-	public boolean is(Token token) {
+	public final boolean is(Token token) {
 		return token == this.token();
 	}
 

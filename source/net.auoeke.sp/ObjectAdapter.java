@@ -27,7 +27,7 @@ final class ObjectAdapter implements PolymorphicSpAdapter<Object, SpMap> {
 
 	@Override public SpMap toSp(Object object, StructuredProperties serializer) {
 		var map = new SpMap();
-		Fields.all(object)
+		Fields.allInstance(object.getClass())
 			.filter(field -> !Flags.any(field, Flags.STATIC | Flags.SYNTHETIC | Flags.TRANSIENT))
 			.forEach(field -> map.put(field.getName(), serializer.toSp(Accessor.get(object, field))));
 
