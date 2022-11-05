@@ -2,7 +2,7 @@ package net.auoeke.sp.source;
 
 import net.auoeke.sp.source.lexeme.Token;
 
-public enum Context {
+enum Context {
 	TOP,
 	ARRAY,
 	MAP;
