@@ -1,12 +1,12 @@
 package net.auoeke.sp.source.tree;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import net.auoeke.sp.source.NodeTransformer;
 import net.auoeke.sp.source.NodeVisitor;
 
 public final class MapTree extends Tree {
-	public final Map<String, PairTree> pairs = new HashMap<>();
+	public final Map<String, PairTree> pairs = new LinkedHashMap<>();
 
 	public PairTree entry(PairTree pair) {
 		return this.pairs.put(pair.a().stringValue(), pair);

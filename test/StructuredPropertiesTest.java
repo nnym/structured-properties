@@ -17,9 +17,7 @@ class StructuredPropertiesTest {
 		var array = StructuredProperties.parseResource(loader.getResource("array.str"));
 		var map = StructuredProperties.parseResource(loader.getResource("map.str"));
 		var example = StructuredProperties.parseResource(Path.of("example.str"));
-		var parser = new Parser("][1,,,, {[] a, b = 1, b = 2, c =}, a = } '); drop table users; --");
-		var result = parser.parse();
-		new Parser("''").parse();
+		var result = Parser.parse(loader.getResource("errors.str").getPath(), "][1,,,, {[] a, b = 1, b = 2, c =}, a = } '); drop table users; --");
 
 		var sp = new StructuredProperties();
 		var stuff = new Stuff();
@@ -28,6 +26,8 @@ class StructuredPropertiesTest {
 		// sp.serialize(System.out, stuffSp);
 
 		var bp = true;
+
+		result.success();
 	}
 
 	private static void time(Runnable test) {

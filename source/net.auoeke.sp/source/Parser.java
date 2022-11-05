@@ -3,7 +3,7 @@ package net.auoeke.sp.source;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import net.auoeke.sp.StructuredProperties;
@@ -32,13 +32,21 @@ public class Parser {
 	private Lexeme lexeme;
 	private Lexeme lookahead;
 
-	public Parser(String sp) {
+	private Parser(String sp) {
 		this.sp = sp;
 		this.lookahead = this.lexeme = new Lexer(sp, StructuredProperties.Option.RETAIN_WHITESPACE, StructuredProperties.Option.RETAIN_COMMENTS).first();
 	}
 
-	public SourceUnit parse() {
-		var tree = new SourceUnit();
+	public static ParseResult parse(String location, String source) {
+		return new Parser(source).parse0(location);
+	}
+
+	public static ParseResult parse(String source) {
+		return parse(null, source);
+	}
+
+	private ParseResult parse0(String location) {
+		var tree = new SourceUnit(location, this.sp);
 
 		if (this.lexeme != null && this.ensureCode()) {
 			do {
@@ -60,7 +68,7 @@ public class Parser {
 								this.pop();
 							} else {
 								tree.addLast(element);
-								return tree;
+								break;
 							}
 						}
 
@@ -111,12 +119,7 @@ public class Parser {
 			}
 		});
 
-		this.errors.stream()
-			.sorted(Comparator.comparing(Error::offsetPosition))
-			.map(error -> error.help(this.sp, null))
-			.forEach(System.err::println);
-
-		return tree;
+		return new ParseResult(tree, Collections.unmodifiableList(this.errors));
 	}
 
 	private Node nextValue() {

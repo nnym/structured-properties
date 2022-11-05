@@ -13,15 +13,14 @@ public record Error(Node node, Offset offset, Key key, Object... arguments) {
 		return this.key.template.replace("%node", this.node).formatted(this.arguments);
 	}
 
-	public String help(String sp, String source) {
+	public String help(String sp, String location) {
 		var position = this.offsetPosition();
 
 		return """
 			%s: %s
 			 %s
-			%s
-			""".formatted(
-			source == null ? position : source + ':' + position, this.description(),
+			%s""".formatted(
+			location == null ? position : location + ':' + position, this.description(),
 			sp.substring(sp.lastIndexOf('\n', position.index()) + 1, (sp.indexOf('\n', position.index()) + sp.length() + 1) % (sp.length() + 1)),
 			" ".repeat(position.column() + 1) + "^".repeat(this.offset == Offset.NONE ? this.node.length() : 1)
 		);

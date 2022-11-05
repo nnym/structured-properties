@@ -26,8 +26,8 @@ import net.auoeke.sp.element.SpPrimitive;
 import net.auoeke.sp.element.SpString;
 import net.auoeke.sp.source.Node;
 import net.auoeke.sp.source.NodeTransformer;
+import net.auoeke.sp.source.ParseResult;
 import net.auoeke.sp.source.Parser;
-import net.auoeke.sp.source.error.SyntaxException;
 import net.auoeke.sp.source.lexeme.BooleanLexeme;
 import net.auoeke.sp.source.lexeme.FloatLexeme;
 import net.auoeke.sp.source.lexeme.IntegerLexeme;
@@ -38,6 +38,7 @@ import net.auoeke.sp.source.tree.MapTree;
 import net.auoeke.sp.source.tree.PairTree;
 import net.auoeke.sp.source.tree.SourceUnit;
 import net.auoeke.sp.source.tree.StringTree;
+import net.auoeke.sp.source.tree.Tree;
 
 public class StructuredProperties {
 	private final Map<Class<?>, PolymorphicToSpAdapter<?, ?>> toSpAdapters = new HashMap<>();
@@ -85,7 +86,7 @@ public class StructuredProperties {
 	}
 
 	public static SpElement parse(String source, Option... options) {
-		return toElement(new Parser(source).parse());
+		return parse(null, source, options);
 	}
 
 	public static SpElement parse(byte[] source) {
@@ -100,19 +101,22 @@ public class StructuredProperties {
 		return parseResource(source.toUri().toURL(), source.toString());
 	}
 
+	public static SpElement toElement(ParseResult result) {
+		return toElement(result.success());
+	}
+
 	private static SpElement parseResource(URL source, String location) {
-		try {
-			try (var stream = source.openStream()) {
-				return parse(stream.readAllBytes());
-			}
-		} catch (SyntaxException exception) {
-			exception.source = location;
-			throw exception;
+		try (var stream = source.openStream()) {
+			return parse(location, new String(stream.readAllBytes()));
 		}
 	}
 
-	private static SpElement toElement(Node node) {
-		return node.accept(new NodeTransformer<>() {
+	private static SpElement parse(String location, String source, Option... options) {
+		return toElement(Parser.parse(location, source));
+	}
+
+	private static SpElement toElement(Tree tree) {
+		return tree.accept(new NodeTransformer<>() {
 			@Override public SpElement transform(SourceUnit node) {
 				return node.stream().filter(Node::isValue).findFirst().map(n -> {
 					var element = n.accept(this);
