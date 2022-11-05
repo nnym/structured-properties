@@ -20,6 +20,7 @@ public class Lexer {
 	private static final String LINE_COMMENT = "##";
 	private static final String BLOCK_COMMENT = "/*";
 	private static final String BLOCK_COMMENT_END = "*/";
+	private static final String RAW_STRING_TERMINATORS = "\n,={}[]";
 
 	private final String source;
 	private final boolean retainWhitespace;
@@ -61,6 +62,10 @@ public class Lexer {
 		return this.nextIndex - 1;
 	}
 
+	private boolean hasNext() {
+		return this.nextIndex < this.source.length();
+	}
+
 	private char next() {
 		if (this.current == '\n') {
 			++this.line;
@@ -80,29 +85,16 @@ public class Lexer {
 		return false;
 	}
 
-	private char previous() {
-		var previous = this.source.charAt(--this.nextIndex);
-
-		if (previous == '\n') {
-			--this.line;
-		}
-
-		--this.column;
-
-		return this.current = previous;
+	private char peek() {
+		return this.source.charAt(this.nextIndex);
 	}
 
-	private boolean peek(String expected) {
-		return this.source.regionMatches(this.previousIndex(), expected, 0, expected.length());
+	private boolean match(int lookahead, String expected) {
+		return this.source.regionMatches(this.previousIndex() + lookahead, expected, 0, expected.length());
 	}
 
 	private boolean peek(char expected) {
-		return this.source.length() > this.nextIndex && this.source.charAt(this.nextIndex) == expected;
-	}
-
-	private void index(int index) {
-		this.nextIndex = index + 1;
-		this.current = this.source.charAt(index);
+		return this.hasNext() && this.source.charAt(this.nextIndex) == expected;
 	}
 
 	private void savePosition() {
@@ -111,7 +103,7 @@ public class Lexer {
 
 	private boolean whitespaceOrComment() {
 		if (this.current == '\n') {
-			this.add(new CharacterLexeme(this.savedPosition, Token.NEWLINE));
+			this.add(new CharacterLexeme(this.position(), Token.NEWLINE));
 		} else if (Character.isWhitespace(this.current)) {
 			this.whitespace();
 		} else {
@@ -139,29 +131,21 @@ public class Lexer {
 		return false;
 	}
 
-	private void scanExpression() {
-		if (contains("{}[]", this.current)) {
-			this.structure();
-		} else if (contains(STRING_DELIMITERS, this.current)) {
-			this.string();
-		} else {
-			this.rawString();
-		}
-	}
-
 	private void process() {
 		if (!this.whitespaceOrComment() && !this.comma() && !this.mapping()) {
 			this.savePosition();
-			this.scanExpression();
 
-			while (this.advance()) {
-				if (!this.shouldTerminateExpression() && Character.isWhitespace(this.current)) {
-					this.whitespace();
-					return;
-				}
+			if (contains("{}[]", this.current)) {
+				this.structure();
+			} else if (contains(STRING_DELIMITERS, this.current)) {
+				this.string();
+			} else {
+				this.rawString();
+			}
 
-				this.previous();
-				return;
+			if (this.hasNext() && !this.peek('\n') && Character.isWhitespace(this.peek())) {
+				this.next();
+				this.whitespace();
 			}
 		}
 	}
@@ -179,29 +163,28 @@ public class Lexer {
 		this.add(new WhitespaceLexeme(this.position(), buildString(builder -> {
 			builder.append(this.current);
 
-			while (this.advance()) {
-				if (!Character.isWhitespace(this.current) || this.current == '\n') {
-					this.previous();
+			while (this.hasNext()) {
+				if (!Character.isWhitespace(this.peek()) || this.peek('\n')) {
 					return;
 				}
 
-				builder.append(this.current);
+				builder.append(this.next());
 			}
 		})));
 	}
 
 	private boolean comment() {
-		if (this.peek(BLOCK_COMMENT)) {
+		if (this.match(0, BLOCK_COMMENT)) {
 			this.add(new CommentLexeme(this.position(), Token.BLOCK_COMMENT, buildString(builder -> {
 				var depth = 1;
 
 				while (this.advance()) {
-					if (this.peek(BLOCK_COMMENT)) {
-						++this.nextIndex;
+					if (this.match(0, BLOCK_COMMENT)) {
+						this.next();
 						++depth;
 						builder.append(BLOCK_COMMENT);
-					} else if (this.peek(BLOCK_COMMENT_END)) {
-						++this.nextIndex;
+					} else if (this.match(0, BLOCK_COMMENT_END)) {
+						this.next();
 
 						if (--depth == 0) {
 							return;
@@ -213,17 +196,16 @@ public class Lexer {
 					}
 				}
 			})));
-		} else if (this.peek(LINE_COMMENT)) {
+		} else if (this.match(0, LINE_COMMENT)) {
 			this.add(new CommentLexeme(this.position(), Token.LINE_COMMENT, buildString(builder -> {
-				++this.nextIndex;
+				this.next();
 
-				while (this.advance()) {
-					if (this.current == '\n') {
-						this.previous();
+				while (this.hasNext()) {
+					if (this.peek('\n')) {
 						return;
 					}
 
-					builder.append(this.current);
+					builder.append(this.next());
 				}
 			})));
 		} else {
@@ -260,7 +242,7 @@ public class Lexer {
 
 		while (this.peek(delimiter)) {
 			++length;
-			this.advance();
+			this.next();
 		}
 
 		return length;
@@ -291,7 +273,7 @@ public class Lexer {
 					var count = 1;
 
 					while (this.peek(delimiter) && count < length) {
-						this.advance();
+						this.next();
 						++count;
 					}
 
@@ -304,13 +286,13 @@ public class Lexer {
 
 					builder.append(this.source, this.previousIndex() - count, this.nextIndex);
 				} else if (this.current == '\\') {
-					this.savePosition();
+					var position = this.position();
 
 					if (this.advance()) {
 						flush.run();
 						builder = new StringBuilder();
+						this.add(new EscapedLexeme(position, this.current));
 						this.savePosition();
-						this.add(new EscapedLexeme(this.savedPosition, this.current));
 					} else {
 						builder.append(this.current);
 						flush.run();
@@ -332,37 +314,34 @@ public class Lexer {
 
 		var string = buildString(builder -> {
 			builder.append(character);
-			var whitespace = -1;
+			Position whitespace = null;
 
-			while (this.advance()) {
-				if (this.shouldTerminateExpression()) {
-					if (whitespace != -1) {
-						additionalWhitespace.add(new WhitespaceLexeme(this.savedPosition, this.source.substring(whitespace, this.previousIndex())));
+			while (this.hasNext()) {
+				if (contains(RAW_STRING_TERMINATORS, this.peek()) || this.match(1, LINE_COMMENT) || this.match(1, BLOCK_COMMENT)) {
+					if (whitespace != null) {
+						additionalWhitespace.add(new WhitespaceLexeme(whitespace, this.source.substring(whitespace.index(), this.nextIndex)));
 					}
 
-					this.previous();
 					return;
 				}
 
+				this.next();
+
 				if (Character.isWhitespace(this.current)) {
-					if (whitespace == -1) {
-						whitespace = this.previousIndex();
+					if (whitespace == null) {
+						whitespace = this.position();
 					}
-				} else if (whitespace == -1) {
+				} else if (whitespace == null) {
 					builder.append(this.current);
 				} else {
-					builder.append(this.source, whitespace, this.nextIndex);
-					whitespace = -1;
+					builder.append(this.source, whitespace.index(), this.nextIndex);
+					whitespace = null;
 				}
 			}
 		});
 
 		this.add(new StringLexeme(this.savedPosition, string));
 		additionalWhitespace.forEach(this::add);
-	}
-
-	private boolean shouldTerminateExpression() {
-		return contains("\n,={}[]", this.current) || this.peek(LINE_COMMENT) || this.peek(BLOCK_COMMENT);
 	}
 
 	private static String buildString(Consumer<StringBuilder> builder) {
