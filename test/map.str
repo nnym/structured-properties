@@ -4,16 +4,16 @@ user.dir = .
 home page = https://example.net
 
 some properties {
-    name = test
-    address = 3 test street
+	name = test
+	address = 3 test street
 
-    array [
-        We don't normally quote around here...
-        "... except when we need
-         a multiline string."
-    ]
+	array [
+		We don't normally quote around here...
+		"... except when we need
+		 a multiline string."
+	]
 
-    nesting {}
+	nesting {}
 }
 
 array [3, "4", '5', true = false, {key = value}, [nesting]]

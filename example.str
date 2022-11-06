@@ -24,25 +24,25 @@ SEPARATOR -> [\n,]
 /* an example /* nested */ comment */
 
 buildscript {
-    dependencies {
-        classpath = [net.example:old-gradle-plugin:1.2.3]
-    }
+	dependencies {
+		classpath = [net.example:old-gradle-plugin:1.2.3]
+	}
 }
 
 name = Structured Properties
 version = 1.2.3
 description = '
-    Structured Properties supports
-    multi-line strings
+	Structured Properties supports
+	multi-line strings
 '
 
 repositories [
-    mavenCentral
-    ~/.m2/repository ## the local repository
-    https://repo.maven.apache.org/maven2/
+	mavenCentral
+	~/.m2/repository ## the local repository
+	https://repo.maven.apache.org/maven2/
 ]
 
 dependencies {
-    implementation = [gradleApi, org.ow2.asm:asm:9.0-SNAPSHOT]
-    testImplementation = org.junit.jupiter:junit-jupiter:5.8.0
+	implementation = [gradleApi, org.ow2.asm:asm:9.0-SNAPSHOT]
+	testImplementation = org.junit.jupiter:junit-jupiter:5.8.0
 }
