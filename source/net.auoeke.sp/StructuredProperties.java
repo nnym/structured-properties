@@ -189,7 +189,7 @@ public class StructuredProperties {
 		this.polymorphicToSpAdapters.add(Objects.requireNonNull(adapter));
 	}
 
-	public <A, B extends SpElement> void adaptBaseToSp(Class<A> type, SpAdapter<? extends A, B> adapter) {
+	public <A, B extends SpElement> void adaptBaseToSp(Class<A> type, ToSpAdapter<? extends A, B> adapter) {
 		this.adaptToSp(new PolymorphicToSpAdapter<A, B>() {
 			@Override public boolean accept(Class<?> t) {
 				return type.isAssignableFrom(t);
