@@ -6,6 +6,7 @@ import net.auoeke.sp.source.lexeme.CommentLexeme;
 import net.auoeke.sp.source.lexeme.EscapedLexeme;
 import net.auoeke.sp.source.lexeme.FloatLexeme;
 import net.auoeke.sp.source.lexeme.IntegerLexeme;
+import net.auoeke.sp.source.lexeme.Lexeme;
 import net.auoeke.sp.source.lexeme.NullLexeme;
 import net.auoeke.sp.source.lexeme.StringDelimiterLexeme;
 import net.auoeke.sp.source.lexeme.StringLexeme;
@@ -15,70 +16,74 @@ import net.auoeke.sp.source.tree.MapTree;
 import net.auoeke.sp.source.tree.PairTree;
 import net.auoeke.sp.source.tree.SourceUnit;
 import net.auoeke.sp.source.tree.StringTree;
+import net.auoeke.sp.source.tree.Tree;
 
 public interface NodeTransformer<T> {
-	default T transform(SourceUnit node) {
-		node.forEach(child -> child.accept(this));
+	default T transformLexeme(Lexeme node) {
 		return null;
+	}
+
+	default T transformTree(Tree node) {
+		return null;
+	}
+
+	default T transform(SourceUnit node) {
+		return this.transformTree(node);
 	}
 
 	default T transform(StringTree node) {
-		node.forEach(child -> child.accept(this));
-		return null;
+		return this.transformTree(node);
 	}
 
 	default T transform(PairTree node) {
-		node.forEach(child -> child.accept(this));
-		return null;
+		return this.transformTree(node);
 	}
 
 	default T transform(ArrayTree node) {
-		node.forEach(child -> child.accept(this));
-		return null;
+		return this.transformTree(node);
 	}
 
 	default T transform(MapTree node) {
-		node.forEach(child -> child.accept(this));
-		return null;
+		return this.transformTree(node);
 	}
 
 	default T transform(NullLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(BooleanLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(StringLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(IntegerLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(FloatLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(StringDelimiterLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(EscapedLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(CommentLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(WhitespaceLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 
 	default T transform(CharacterLexeme node) {
-		return null;
+		return this.transformLexeme(node);
 	}
 }
