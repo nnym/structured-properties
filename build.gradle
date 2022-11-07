@@ -5,7 +5,7 @@ plugins {
 	id("net.auoeke.gronk").version("latest.release")
 }
 
-version("0.4.1")
+version("0.5.0")
 description("Properties with structure and types")
 javaVersion(17)
 
