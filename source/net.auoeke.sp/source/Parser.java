@@ -3,6 +3,7 @@ package net.auoeke.sp.source;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.source.error.Error;
@@ -19,10 +20,8 @@ import net.auoeke.sp.source.tree.Tree;
 @SuppressWarnings("DuplicatedCode")
 public class Parser {
 	private final List<Error> errors = new ArrayList<>();
-	private final Lexeme[] stack = new Lexeme[2];
 	private final String sp;
 	private Context context = Context.TOP;
-	private int stackIndex = -1;
 	private Lexeme lexeme;
 	private Lexeme lookahead;
 
@@ -49,29 +48,22 @@ public class Parser {
 				if (element != null) {
 					if (element instanceof PairTree pair) {
 						var map = new MapTree();
-						map.first(element);
+						map.linkFirst(pair);
 						map.entry(pair);
 						this.endMap(map, false);
-						map.last(this.lexeme);
+						this.linkLast(map);
 						tree.addLast(map);
 					} else if (this.consumeSeparator(false)) {
-						if (this.lexeme.isNewline()) {
-							this.pushNew();
-
-							if (this.advanceCode()) {
-								this.pop();
-							} else {
-								tree.addLast(element);
-								break;
-							}
+						if (this.lexeme.isNewline() && !this.lookAheadCode()) {
+							tree.addLast(element);
+						} else {
+							var array = new ArrayTree();
+							array.linkFirst(element);
+							array.element(element);
+							this.endArray(array, false);
+							this.linkLast(array);
+							tree.addLast(array);
 						}
-
-						var array = new ArrayTree();
-						array.first(element);
-						array.addLast(element);
-						this.endArray(array, false);
-						array.last(this.lexeme);
-						tree.addLast(array);
 					} else {
 						tree.addLast(element);
 					}
@@ -81,80 +73,40 @@ public class Parser {
 			} while (this.advanceCode());
 		}
 
-		tree.accept(new NodeVisitor() {
-			static void fix(Tree node) {
-				node.link(node.first.previous, node.last == null ? null : node.last.next);
-				node.first.previous(null);
-				node.last.next(null);
-			}
-
-			@Override public void visit(StringTree node) {
-				fix(node);
-			}
-
-			@Override public void visit(PairTree node) {
-				node.a().accept(this);
-
-				if (node.b() != null) {
-					node.b().accept(this);
-				}
-
-				fix(node);
-			}
-
-			@Override public void visit(ArrayTree node) {
-				node.elements.forEach(element -> element.accept(this));
-				fix(node);
-			}
-
-			@Override public void visit(MapTree node) {
-				node.pairs.forEach((key, pair) -> pair.accept(this));
-				fix(node);
-			}
-		});
-
 		return new ParseResult(tree, Collections.unmodifiableList(this.errors));
 	}
 
 	private Node nextValue() {
 		var element = this.value();
 
-		if (element != null) {
-			this.pushNew();
+		if (element != null && this.lexeme != null) {
+			var primitive = element.isPrimitive();
 
-			if (this.advance()) {
-				var primitive = element.isPrimitive();
-
-				if (this.lexeme.token().begin()) {
-					if (!primitive) {
-						this.error(Error.Key.COMPOUND_STRUCTURE_KEY);
-					}
-
-					return this.pair(null, element, this.nextValue());
+			if (this.lexeme.token().begin()) {
+				if (!primitive) {
+					this.error(Error.Key.COMPOUND_STRUCTURE_KEY);
 				}
 
-				if (this.lexeme.isPrimitive()) {
-					if (primitive) {
-						this.error(Error.Key.PRIMITIVE_RIGHT_NO_MAPPING, Error.Offset.BEFORE);
-					} else {
-						this.error(element, Error.Key.COMPOUND_KEY);
-					}
-
-					return this.pair(null, element, this.nextValue());
-				}
-
-				this.top();
-
-				if (this.advanceCode() && this.lexeme.isMapping()) {
-					if (this.context != Context.ARRAY && !primitive) {
-						this.error(element, Error.Key.COMPOUND_KEY);
-					}
-
-					return this.pair(this.lexeme, element, this.advanceCode() ? this.nextValue() : null);
-				}
+				return this.pair(null, element, this.nextValue());
 			}
 
-			this.pop();
+			if (this.lexeme.isPrimitive()) {
+				if (primitive) {
+					this.error(Error.Key.PRIMITIVE_RIGHT_NO_MAPPING, Error.Offset.BEFORE);
+				} else {
+					this.error(element, Error.Key.COMPOUND_KEY);
+				}
+
+				return this.pair(null, element, this.nextValue());
+			}
+
+			if (this.lexeme.isMapping() || this.lookAheadCode() && this.lookahead.isMapping() && this.advanceCode()) {
+				if (this.context != Context.ARRAY && !primitive) {
+					this.error(element, Error.Key.COMPOUND_KEY);
+				}
+
+				return this.pair(this.lexeme, element, this.advanceCode() ? this.nextValue() : null);
+			}
 		}
 
 		return element;
@@ -162,26 +114,42 @@ public class Parser {
 
 	private PairTree pair(Node lastFallback, Node a, Node b) {
 		var pair = new PairTree();
-		pair.first(a);
-		pair.last(b);
+		pair.linkFirst(a);
+		this.linkLast(pair, Objects.requireNonNullElse(b, lastFallback));
 
 		if (b == null) {
-			pair.last(lastFallback);
 			this.error(pair, Error.Key.NO_VALUE);
 		}
 
 		return pair;
 	}
 
+	private void linkLast(Tree tree, Node last) {
+		if (last == this.lexeme) {
+			this.linkLast(tree);
+		} else {
+			tree.linkLast(last);
+		}
+	}
+
+	private void linkLast(Tree tree) {
+		var last = this.lexeme;
+		this.advance();
+		tree.linkLast(last);
+	}
+
 	private Node value() {
 		for (;;) {
 			switch (this.lexeme.token()) {
 				case BOOLEAN, INTEGER, FLOAT, NULL -> {
-					return this.lexeme;
+					var lexeme = this.lexeme;
+					this.advance();
+
+					return lexeme;
 				}
 				case STRING_DELIMITER -> {
 					var tree = new StringTree();
-					tree.first(this.lexeme);
+					tree.linkFirst(this.lexeme);
 
 					for (;;) {
 						if (!this.advance()) {
@@ -194,20 +162,16 @@ public class Parser {
 						}
 					}
 
-					tree.last(this.lexeme);
+					this.linkLast(tree);
 
 					return tree;
 				}
 				case STRING -> {
-					var string = (StringLexeme) this.lexeme;
+					var tree = new StringTree();
+					tree.linkFirst(this.lexeme);
+					this.linkLast(tree);
 
-					if (string == string) {
-						var tree = new StringTree();
-						tree.first(string);
-						tree.last(string);
-
-						return tree;
-					}
+					return tree;
 				}
 				default -> {
 					var context = this.context;
@@ -216,9 +180,9 @@ public class Parser {
 						case ARRAY_BEGIN -> {
 							this.context = Context.ARRAY;
 							var array = new ArrayTree();
-							array.first(this.lexeme);
+							array.linkFirst(this.lexeme);
 							this.endArray(array, true);
-							array.last(this.lexeme);
+							this.linkLast(array);
 							this.context = context;
 
 							return array;
@@ -226,20 +190,14 @@ public class Parser {
 						case MAP_BEGIN -> {
 							this.context = Context.MAP;
 							var map = new MapTree();
-							map.first(this.lexeme);
+							map.linkFirst(this.lexeme);
 							this.endMap(map, true);
-							map.last(this.lexeme);
+							this.linkLast(map);
 							this.context = context;
 
 							return map;
 						}
 						default -> {
-							// this.error(Error.Key.ILLEGAL_TOKEN);
-							//
-							// if (!this.advanceCode()) {
-							// 	return null;
-							// }
-
 							return null;
 						}
 					}
@@ -250,11 +208,22 @@ public class Parser {
 
 	private void endArray(ArrayTree array, boolean close) {
 		while (this.advanceCode()) {
-			if (this.lexeme.is(Token.ARRAY_END)) {
+			if (close && this.lexeme.is(Token.ARRAY_END)) {
 				return;
 			}
 
-			array.element(this.nextValue());
+			var element = this.nextValue();
+
+			if (element == null) {
+				this.error(Error.Key.ILLEGAL_TOKEN);
+			} else {
+				array.element(element);
+			}
+
+			if (close && this.lexeme != null && this.lexeme.is(Token.ARRAY_END)) {
+				return;
+			}
+
 			this.consumeSeparator(true);
 		}
 
@@ -265,7 +234,7 @@ public class Parser {
 
 	private void endMap(MapTree map, boolean close) {
 		while (this.advanceCode()) {
-			if (this.lexeme.is(Token.MAP_END)) {
+			if (close && this.lexeme.is(Token.MAP_END)) {
 				return;
 			}
 
@@ -275,14 +244,14 @@ public class Parser {
 				if (map.entry(pair) != null) {
 					this.error(pair.a(), Error.Key.DUPLICATE_KEY);
 				}
-
-				if (pair.b() == null) {
-					this.lexeme = (Lexeme) pair.last;
-				}
 			} else if (element == null) {
 				this.error(Error.Key.ILLEGAL_TOKEN);
 			} else {
 				this.error(Error.Key.NO_MAP_VALUE);
+			}
+
+			if (close && this.lexeme != null && this.lexeme.is(Token.MAP_END)) {
+				return;
 			}
 
 			this.consumeSeparator(true);
@@ -294,9 +263,7 @@ public class Parser {
 	}
 
 	private boolean consumeSeparator(boolean require) {
-		this.pushNew();
-
-		if (this.advance()) {
+		if (this.lexeme != null) {
 			if (this.lexeme.isNewline()) {
 				return true;
 			}
@@ -307,11 +274,6 @@ public class Parser {
 					this.error(Error.Key.CONSECUTIVE_COMMA);
 				}
 
-				return true;
-			}
-
-			if (this.lexeme.is(this.context.end())) {
-				this.pop();
 				return true;
 			}
 
@@ -342,12 +304,19 @@ public class Parser {
 	private boolean advance(Predicate<Lexeme> predicate) {
 		this.lookahead = this.lexeme;
 
-		if (this.lookAhead(predicate)) {
-			this.lexeme = this.lookahead;
-			return true;
+		while (this.lexeme != null) {
+			this.lexeme = (Lexeme) this.lexeme.next;
+
+			if (this.lexeme != null && predicate.test(this.lexeme)) {
+				if (this.lexeme.token().end() && !this.lexeme.is(this.context.end())) {
+					this.error(this.lexeme, Error.Key.END_OUT_OF_CONTEXT);
+				}
+
+				break;
+			}
 		}
 
-		return false;
+		return this.lexeme != null;
 	}
 
 	private boolean lookAheadCode() {
@@ -363,36 +332,17 @@ public class Parser {
 	}
 
 	private Lexeme peek(Predicate<Lexeme> predicate) {
-		while (this.lookahead.next != null) {
+		this.lookahead = this.lexeme;
+
+		while (this.lookahead != null) {
 			this.lookahead = (Lexeme) this.lookahead.next;
 
-			if (!this.lookahead.token().end() || this.lookahead.is(this.context.end())) {
-				if (predicate.test(this.lookahead)) {
-					return this.lookahead;
-				}
-			} else {
-				this.error(this.lookahead, Error.Key.END_OUT_OF_CONTEXT);
+			if (this.lookahead == null || predicate.test(this.lookahead)) {
+				break;
 			}
 		}
 
-		return this.lookahead = null;
-	}
-
-	private void push() {
-		this.stack[++this.stackIndex] = this.lexeme;
-	}
-
-	private void pushNew() {
-		this.stackIndex = -1;
-		this.push();
-	}
-
-	private Lexeme top() {
-		return this.lexeme = this.stack[this.stackIndex];
-	}
-
-	private Lexeme pop() {
-		return this.lexeme = this.stack[this.stackIndex--];
+		return this.lookahead;
 	}
 
 	private void error(Error.Key error, Object... arguments) {

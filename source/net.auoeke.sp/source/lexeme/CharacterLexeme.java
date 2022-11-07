@@ -24,6 +24,10 @@ public final class CharacterLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
+	@Override public CharacterLexeme clone() {
+		return new CharacterLexeme(this.position, this.token);
+	}
+
 	@Override public String toString() {
 		return String.valueOf(this.token.character());
 	}

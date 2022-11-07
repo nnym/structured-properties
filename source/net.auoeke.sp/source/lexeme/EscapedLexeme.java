@@ -24,6 +24,10 @@ public final class EscapedLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
+	@Override public EscapedLexeme clone() {
+		return new EscapedLexeme(this.position, this.character);
+	}
+
 	@Override public String stringValue() {
 		return String.valueOf(this.character);
 	}

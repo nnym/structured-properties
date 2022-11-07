@@ -29,4 +29,8 @@ public final class PairTree extends Tree {
 	@Override public boolean isValue() {
 		return true;
 	}
+
+	@Override protected Tree cloneChildless() {
+		return new PairTree();
+	}
 }

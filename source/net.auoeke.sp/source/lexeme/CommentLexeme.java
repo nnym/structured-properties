@@ -26,6 +26,10 @@ public final class CommentLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
+	@Override public CommentLexeme clone() {
+		return new CommentLexeme(this.position, this.token, this.value);
+	}
+
 	@Override public String toString() {
 		return switch (this.token) {
 			case LINE_COMMENT -> "##" + this.value;

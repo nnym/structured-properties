@@ -28,12 +28,16 @@ public final class StringLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
-	@Override public String toString() {
-		return this.value;
+	@Override public StringLexeme clone() {
+		return new StringLexeme(this.position, this.value);
 	}
 
 	@Override public boolean isValue() {
 		return true;
+	}
+
+	@Override public String toString() {
+		return this.value;
 	}
 
 	@Override public int hashCode() {

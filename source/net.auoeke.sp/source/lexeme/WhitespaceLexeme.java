@@ -24,6 +24,10 @@ public final class WhitespaceLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
+	@Override public WhitespaceLexeme clone() {
+		return new WhitespaceLexeme(this.position, this.value);
+	}
+
 	@Override public String toString() {
 		return this.value;
 	}

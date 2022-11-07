@@ -31,11 +31,15 @@ public final class FloatLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
-	@Override public String toString() {
-		return this.source;
+	@Override public FloatLexeme clone() {
+		return new FloatLexeme(this.position, this.source, this.value);
 	}
 
 	@Override public boolean isValue() {
 		return true;
+	}
+
+	@Override public String toString() {
+		return this.source;
 	}
 }

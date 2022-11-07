@@ -23,4 +23,11 @@ public final class MapTree extends Tree {
 	@Override public boolean isValue() {
 		return true;
 	}
+
+	@Override protected Tree cloneChildless() {
+		var clone = new MapTree();
+		this.pairs.forEach((key, value) -> clone.entry(value));
+
+		return clone;
+	}
 }

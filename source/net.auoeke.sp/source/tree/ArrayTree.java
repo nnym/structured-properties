@@ -24,4 +24,11 @@ public final class ArrayTree extends Tree {
 	@Override public boolean isValue() {
 		return true;
 	}
+
+	@Override protected Tree cloneChildless() {
+		var clone = new ArrayTree();
+		this.elements.forEach(clone::element);
+
+		return clone;
+	}
 }

@@ -24,6 +24,10 @@ public final class StringDelimiterLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
+	@Override public StringDelimiterLexeme clone() {
+		return new StringDelimiterLexeme(this.position, this.value);
+	}
+
 	@Override public String toString() {
 		return this.value;
 	}

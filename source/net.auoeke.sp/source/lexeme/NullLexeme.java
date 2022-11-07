@@ -16,8 +16,8 @@ public final class NullLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
-	@Override public String toString() {
-		return "null";
+	@Override public NullLexeme clone() {
+		return new NullLexeme(this.position);
 	}
 
 	@Override public boolean isValue() {
@@ -30,5 +30,9 @@ public final class NullLexeme extends Lexeme {
 
 	@Override public boolean isPrimitive() {
 		return true;
+	}
+
+	@Override public String toString() {
+		return "null";
 	}
 }

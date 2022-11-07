@@ -1,5 +1,7 @@
 package net.auoeke.sp.source;
 
+import java.util.Objects;
+import java.util.stream.Stream;
 import net.auoeke.sp.source.lexeme.Lexeme;
 import net.auoeke.sp.source.lexeme.Position;
 import net.auoeke.sp.source.tree.Tree;
@@ -9,11 +11,13 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 	public Node next;
 	protected Tree parent;
 
+	public abstract Position start();
+
 	public abstract void accept(NodeVisitor visitor);
 
 	public abstract <T> T accept(NodeTransformer<T> transformer);
 
-	public abstract Position start();
+	@Override public abstract Node clone();
 
 	@Override public abstract String toString();
 
@@ -29,12 +33,50 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 		return this.next;
 	}
 
-	public void parent(Tree parent) {
-		if (this.parent != null) {
-			this.parent.remove(this);
-		}
+	public Node previous(int distance) {
+		return this.iteratePrevious().limit(distance + 1).reduce(this, (a, b) -> b);
+	}
 
-		this.parent = parent;
+	public Node next(int distance) {
+		return this.iterateNext().limit(distance + 1).reduce(this, (a, b) -> b);
+	}
+
+	public Node root() {
+		return this.ancestors().reduce(this, (a, b) -> b);
+	}
+
+	public Stream<Node> ancestors() {
+		return Stream.iterate(this.parent, Objects::nonNull, Node::parent);
+	}
+
+	public Stream<Node> iteratePrevious() {
+		return Stream.iterate(this, Objects::nonNull, Node::previous);
+	}
+
+	public Stream<Node> iterateStrictlyPrevious() {
+		return Stream.iterate(this.previous, Objects::nonNull, Node::previous);
+	}
+
+	public Stream<Node> iterateNext() {
+		return Stream.iterate(this, Objects::nonNull, Node::next);
+	}
+
+	public Stream<Node> iterateStrictlyNext() {
+		return Stream.iterate(this.next, Objects::nonNull, Node::next);
+	}
+
+	public int index() {
+		return (int) Stream.iterate(this.previous, Objects::nonNull, Node::previous).count();
+	}
+
+	public void parent(Tree parent) {
+		if (this.parent != parent) {
+			if (this.parent != null) {
+				this.parent.remove(this);
+			}
+
+			this.parent = parent;
+		}
 	}
 
 	public void set(Node replacement) {
@@ -57,6 +99,10 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 		}
 
 		if (previous != null) {
+			if (previous.next != null) {
+				previous.next.previous(null);
+			}
+
 			previous.next(this);
 		}
 
@@ -69,6 +115,10 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 		}
 
 		if (next != null) {
+			if (next.previous != null) {
+				next.previous.next(null);
+			}
+
 			next.previous(this);
 		}
 
@@ -97,6 +147,23 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 		this.parent(null);
 		this.previous(null);
 		this.next(null);
+	}
+
+	public Node cloneRoot() {
+		var breadcrumbs = Stream.iterate(this, node -> node.parent != null, Node::parent).mapToInt(Node::index).toArray();
+		var clone = this.root().clone();
+
+		if (clone instanceof Tree tree) {
+			for (var index = breadcrumbs.length - 1; index >= 0; index--) {
+				clone = tree.first.next(breadcrumbs[index]);
+
+				if (index != 0) {
+					tree = (Tree) clone;
+				}
+			}
+		}
+
+		return clone;
 	}
 
 	public String stringValue() {

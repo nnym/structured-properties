@@ -31,11 +31,15 @@ public final class IntegerLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
-	@Override public String toString() {
-		return this.source;
+	@Override public IntegerLexeme clone() {
+		return new IntegerLexeme(this.position, this.source, this.value);
 	}
 
 	@Override public boolean isValue() {
 		return true;
+	}
+
+	@Override public String toString() {
+		return this.source;
 	}
 }

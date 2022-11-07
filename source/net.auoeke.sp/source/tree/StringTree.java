@@ -33,6 +33,10 @@ public final class StringTree extends Tree {
 		return transformer.transform(this);
 	}
 
+	@Override public Tree cloneChildless() {
+		return new StringTree();
+	}
+
 	@Override public String stringValue() {
 		return this.value().map(Node::stringValue).collect(Collectors.joining());
 	}

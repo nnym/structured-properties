@@ -32,6 +32,10 @@ public final class BooleanLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
+	@Override public BooleanLexeme clone() {
+		return new BooleanLexeme(this.position, this.value);
+	}
+
 	@Override public String toString() {
 		return String.valueOf(this.value);
 	}

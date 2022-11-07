@@ -23,4 +23,8 @@ public final class SourceUnit extends Tree {
 	@Override public void parent(Tree parent) {
 		throw new UnsupportedOperationException();
 	}
+
+	@Override protected Tree cloneChildless() {
+		return new SourceUnit(this.location, this.source);
+	}
 }
