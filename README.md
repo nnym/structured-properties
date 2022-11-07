@@ -38,6 +38,7 @@ and possibly a leading or trailing radix point.
   - `times {start = 8:00, end = 13:00}`
 - An **array** is a sequence of elements separated by `\n` or `,` and enclosed in `[]`.
   - `[string, true]`
+  - `[a = b, a = c]`
   - ```
     [
         element 0
