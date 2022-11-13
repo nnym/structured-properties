@@ -1,10 +1,12 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
 import java.util.Map;
+import net.auoeke.sp.SpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpMap;
 
-final class MapAdapter implements SpAdapter<Map<?, ?>, SpMap> {
-	static final MapAdapter instance = new MapAdapter();
+public final class MapAdapter implements SpAdapter<Map<?, ?>, SpMap> {
+	public static final MapAdapter instance = new MapAdapter();
 
 	@Override public SpMap toSp(Map<?, ?> map, StructuredProperties serializer) {
 		var spMap = new SpMap();

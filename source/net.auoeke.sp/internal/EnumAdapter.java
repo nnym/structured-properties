@@ -1,10 +1,12 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
 import net.auoeke.reflect.Classes;
+import net.auoeke.sp.PolymorphicSpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpString;
 
-final class EnumAdapter implements PolymorphicSpAdapter<Enum<?>, SpString> {
-	static final EnumAdapter instance = new EnumAdapter();
+public final class EnumAdapter implements PolymorphicSpAdapter<Enum<?>, SpString> {
+	public static final EnumAdapter instance = new EnumAdapter();
 
 	@Override public boolean accept(Class<?> type) {
 		return type.isEnum();

@@ -1,10 +1,12 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
 import java.math.BigDecimal;
+import net.auoeke.sp.SpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpFloat;
 
-final class BigDecimalAdapter implements SpAdapter<BigDecimal, SpFloat> {
-	static final BigDecimalAdapter instance = new BigDecimalAdapter();
+public final class BigDecimalAdapter implements SpAdapter<BigDecimal, SpFloat> {
+	public static final BigDecimalAdapter instance = new BigDecimalAdapter();
 
 	@Override public SpFloat toSp(BigDecimal integer, StructuredProperties serializer) {
 		return new SpFloat(integer);

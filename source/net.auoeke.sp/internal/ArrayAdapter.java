@@ -1,12 +1,14 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import net.auoeke.reflect.Types;
+import net.auoeke.sp.PolymorphicSpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpArray;
 
-final class ArrayAdapter implements PolymorphicSpAdapter<Object, SpArray> {
-	static final ArrayAdapter instance = new ArrayAdapter();
+public final class ArrayAdapter implements PolymorphicSpAdapter<Object, SpArray> {
+	public static final ArrayAdapter instance = new ArrayAdapter();
 
 	@Override public boolean accept(Class<?> type) {
 		return type.isArray();

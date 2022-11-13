@@ -1,14 +1,16 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
 import java.util.Objects;
 import net.auoeke.reflect.Accessor;
 import net.auoeke.reflect.Constructors;
 import net.auoeke.reflect.Fields;
 import net.auoeke.reflect.Flags;
+import net.auoeke.sp.PolymorphicSpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpMap;
 
-final class ObjectAdapter implements PolymorphicSpAdapter<Object, SpMap> {
-	static final ObjectAdapter instance = new ObjectAdapter();
+public final class ObjectAdapter implements PolymorphicSpAdapter<Object, SpMap> {
+	public static final ObjectAdapter instance = new ObjectAdapter();
 
 	@Override public boolean accept(Class<?> type) {
 		return !type.isPrimitive();

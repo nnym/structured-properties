@@ -1,9 +1,11 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
+import net.auoeke.sp.SpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpString;
 
-final class CharSequenceAdapter implements SpAdapter<CharSequence, SpString> {
-	static final CharSequenceAdapter instance = new CharSequenceAdapter();
+public final class CharSequenceAdapter implements SpAdapter<CharSequence, SpString> {
+	public static final CharSequenceAdapter instance = new CharSequenceAdapter();
 
 	@Override public SpString toSp(CharSequence charSequence, StructuredProperties serializer) {
 		return new SpString(charSequence);

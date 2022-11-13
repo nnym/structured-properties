@@ -1,11 +1,13 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
+import net.auoeke.sp.SpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpArray;
 
-final class CollectionAdapter implements SpAdapter<Collection<?>, SpArray> {
-	static final CollectionAdapter instance = new CollectionAdapter();
+public final class CollectionAdapter implements SpAdapter<Collection<?>, SpArray> {
+	public static final CollectionAdapter instance = new CollectionAdapter();
 
 	@Override public SpArray toSp(Collection<?> collection, StructuredProperties serializer) {
 		return collection.stream().map(serializer::toSp).collect(Collectors.toCollection(SpArray::new));

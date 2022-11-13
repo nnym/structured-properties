@@ -24,6 +24,23 @@ import net.auoeke.sp.element.SpNull;
 import net.auoeke.sp.element.SpPair;
 import net.auoeke.sp.element.SpPrimitive;
 import net.auoeke.sp.element.SpString;
+import net.auoeke.sp.internal.ArrayAdapter;
+import net.auoeke.sp.internal.BigDecimalAdapter;
+import net.auoeke.sp.internal.BigIntegerAdapter;
+import net.auoeke.sp.internal.BooleanAdapter;
+import net.auoeke.sp.internal.ByteAdapter;
+import net.auoeke.sp.internal.CharSequenceAdapter;
+import net.auoeke.sp.internal.CharacterAdapter;
+import net.auoeke.sp.internal.CollectionAdapter;
+import net.auoeke.sp.internal.DoubleAdapter;
+import net.auoeke.sp.internal.EnumAdapter;
+import net.auoeke.sp.internal.FloatAdapter;
+import net.auoeke.sp.internal.IntegerAdapter;
+import net.auoeke.sp.internal.LongAdapter;
+import net.auoeke.sp.internal.MapAdapter;
+import net.auoeke.sp.internal.ObjectAdapter;
+import net.auoeke.sp.internal.ShortAdapter;
+import net.auoeke.sp.internal.SpElementAdapter;
 import net.auoeke.sp.source.Node;
 import net.auoeke.sp.source.NodeTransformer;
 import net.auoeke.sp.source.ParseResult;
@@ -317,16 +334,18 @@ public class StructuredProperties {
 			.orElseGet(() -> Classes.cast(this.polymorphicToSpAdapters.stream()
 				.filter(adapter -> adapter.accept(type))
 				.reduce((a, b) -> b)
-				.orElseThrow(() -> new IllegalArgumentException("no %s -> sp adapter was found".formatted(type.getName())))))
-		);
+				.orElseThrow(() -> new IllegalArgumentException("no %s -> sp adapter was found".formatted(type.getName())))
+			)));
 	}
 
 	private <A, B extends SpElement> PolymorphicFromSpAdapter<A, B> fromSpAdapter(Class<A> type, Class<B> spType) {
 		return (PolymorphicFromSpAdapter<A, B>) this.cachedFromSpAdapters.computeIfAbsent(new AdapterKey(type, spType), k -> Optional.ofNullable(this.fromSpAdapters.get(k))
-			.orElseGet(() -> Classes.cast(Optional.ofNullable(this.polymorphicFromSpAdapters.get(spType)).flatMap(adapters -> adapters.stream()
-				.filter(adapter -> adapter.accept(type))
-				.reduce((a, b) -> b)
-			).orElseThrow(() -> new IllegalArgumentException("no %s -> %s adapter was found".formatted(spType.getSimpleName(), type.getName())))))
+			.orElseGet(() -> Classes.cast(Optional.ofNullable(this.polymorphicFromSpAdapters.get(spType))
+				.flatMap(adapters -> adapters.stream()
+					.filter(adapter -> adapter.accept(type))
+					.reduce((a, b) -> b)
+				).orElseThrow(() -> new IllegalArgumentException("no %s -> %s adapter was found".formatted(spType.getSimpleName(), type.getName())))
+			))
 		);
 	}
 

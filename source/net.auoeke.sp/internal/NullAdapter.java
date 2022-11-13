@@ -1,5 +1,7 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
+import net.auoeke.sp.SpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpNull;
 
 final class NullAdapter implements SpAdapter<Object, SpNull> {

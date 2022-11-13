@@ -1,10 +1,12 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
 import java.math.BigInteger;
+import net.auoeke.sp.SpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpInteger;
 
-final class BigIntegerAdapter implements SpAdapter<BigInteger, SpInteger> {
-	static final BigIntegerAdapter instance = new BigIntegerAdapter();
+public final class BigIntegerAdapter implements SpAdapter<BigInteger, SpInteger> {
+	public static final BigIntegerAdapter instance = new BigIntegerAdapter();
 
 	@Override public SpInteger toSp(BigInteger integer, StructuredProperties serializer) {
 		return new SpInteger(integer);

@@ -1,9 +1,11 @@
-package net.auoeke.sp;
+package net.auoeke.sp.internal;
 
+import net.auoeke.sp.SpAdapter;
+import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.element.SpFloat;
 
-final class FloatAdapter implements SpAdapter<Float, SpFloat> {
-	static final FloatAdapter instance = new FloatAdapter();
+public final class FloatAdapter implements SpAdapter<Float, SpFloat> {
+	public static final FloatAdapter instance = new FloatAdapter();
 
 	@Override public SpFloat toSp(Float floa, StructuredProperties serializer) {
 		return new SpFloat(floa);
