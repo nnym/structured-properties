@@ -20,6 +20,10 @@ public final class MapTree extends Tree {
 		return transformer.transform(this);
 	}
 
+	@Override public Type type() {
+		return Type.MAP;
+	}
+
 	@Override public boolean isValue() {
 		return true;
 	}

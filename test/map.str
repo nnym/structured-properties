@@ -1,16 +1,16 @@
 java.home = /usr/lib/jvm/j8-17
 user.dir = .
 
-home page = https://example.net
+home page = https://github.com/auoeke/structured-properties
 
 some properties {
 	name = test
 	address = 3 test street
 
 	array [
-		We don't normally quote around here...
-		"... except when we need
-		 a multiline string."
+		Most strings don't require manual delimitation...
+		"... except when they span
+		 multiple lines."
 	]
 
 	nesting {}

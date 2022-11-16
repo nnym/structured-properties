@@ -12,8 +12,8 @@ public final class BooleanLexeme extends Lexeme {
 		this.value = value;
 	}
 
-	@Override public Token token() {
-		return Token.BOOLEAN;
+	@Override public Type type() {
+		return Type.BOOLEAN;
 	}
 
 	@Override public boolean isValue() {

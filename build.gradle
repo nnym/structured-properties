@@ -2,10 +2,10 @@ plugins {
 	id("java")
 	id("maven-publish")
 	id("signing")
-	id("net.auoeke.gronk").version("latest.release")
+	id("net.auoeke.gronk").version("3.+")
 }
 
-version("0.5.0")
+version("0.6.0")
 description("Properties with structure and types")
 javaVersion(17)
 
@@ -28,6 +28,18 @@ dependencies {
 
 	testImplementation("org.junit.jupiter:junit-jupiter-api")
 	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
+compileJava {
+	// "package %s does not exist"
+	// "cannot find symbol class %s"
+	// Somewhy clean fixes these errors.
+	dependsOn(clean)
+}
+
+compileTestJava {
+	sourceCompatibility = targetCompatibility = 19
+	options.compilerArgs << "--enable-preview"
 }
 
 test {

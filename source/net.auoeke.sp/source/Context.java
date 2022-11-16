@@ -1,24 +1,22 @@
 package net.auoeke.sp.source;
 
-import net.auoeke.sp.source.lexeme.Token;
-
 enum Context {
 	TOP,
 	ARRAY,
 	MAP;
 
-	public Token begin() {
+	public Node.Type begin() {
 		return switch (this) {
-			case ARRAY -> Token.ARRAY_BEGIN;
-			case MAP -> Token.MAP_BEGIN;
+			case ARRAY -> Node.Type.LBRACKET;
+			case MAP -> Node.Type.LBRACE;
 			case TOP -> null;
 		};
 	}
 
-	public Token end() {
+	public Node.Type end() {
 		return switch (this) {
-			case ARRAY -> Token.ARRAY_END;
-			case MAP -> Token.MAP_END;
+			case ARRAY -> Node.Type.RBRACKET;
+			case MAP -> Node.Type.RBRACE;
 			case TOP -> null;
 		};
 	}

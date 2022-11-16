@@ -3,7 +3,11 @@ package net.auoeke.sp.source.tree;
 import net.auoeke.sp.source.NodeTransformer;
 import net.auoeke.sp.source.NodeVisitor;
 
-public final class StringTree extends DelimitedTree {
+public final class BlockCommentTree extends DelimitedTree {
+	@Override public Type type() {
+		return Type.BLOCK_COMMENT;
+	}
+
 	@Override public void accept(NodeVisitor visitor) {
 		visitor.visit(this);
 	}
@@ -13,18 +17,6 @@ public final class StringTree extends DelimitedTree {
 	}
 
 	@Override public Tree cloneChildless() {
-		return new StringTree();
-	}
-
-	@Override public Type type() {
-		return Type.STRING_TREE;
-	}
-
-	@Override public boolean isValue() {
-		return true;
-	}
-
-	@Override public boolean isPrimitive() {
-		return true;
+		return new BlockCommentTree();
 	}
 }

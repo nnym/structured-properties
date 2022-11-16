@@ -1,13 +1,15 @@
 package net.auoeke.sp.source.tree;
 
+import net.auoeke.sp.source.Node;
 import net.auoeke.sp.source.NodeTransformer;
 import net.auoeke.sp.source.NodeVisitor;
 
 public final class SourceUnit extends Tree {
 	public final String location;
-	public final String source;
+	public final CharSequence source;
+	public Node element;
 
-	public SourceUnit(String location, String source) {
+	public SourceUnit(String location, CharSequence source) {
 		this.location = location;
 		this.source = source;
 	}
@@ -18,6 +20,10 @@ public final class SourceUnit extends Tree {
 
 	@Override public <T> T accept(NodeTransformer<T> transformer) {
 		return transformer.transform(this);
+	}
+
+	@Override public Type type() {
+		return Type.FILE;
 	}
 
 	@Override public void parent(Tree parent) {

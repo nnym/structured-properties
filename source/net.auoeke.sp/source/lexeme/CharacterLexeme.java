@@ -4,16 +4,16 @@ import net.auoeke.sp.source.NodeTransformer;
 import net.auoeke.sp.source.NodeVisitor;
 
 public final class CharacterLexeme extends Lexeme {
-	public final Token token;
+	public final Type type;
 
-	public CharacterLexeme(Position position, Token token) {
+	public CharacterLexeme(Position position, Type type) {
 		super(position);
 
-		this.token = token;
+		this.type = type;
 	}
 
-	@Override public Token token() {
-		return this.token;
+	@Override public Type type() {
+		return this.type;
 	}
 
 	@Override public void accept(NodeVisitor visitor) {
@@ -25,10 +25,10 @@ public final class CharacterLexeme extends Lexeme {
 	}
 
 	@Override public CharacterLexeme clone() {
-		return new CharacterLexeme(this.position, this.token);
+		return new CharacterLexeme(this.position, this.type);
 	}
 
 	@Override public String toString() {
-		return String.valueOf(this.token.character());
+		return String.valueOf(this.type.character());
 	}
 }

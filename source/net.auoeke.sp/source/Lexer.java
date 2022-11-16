@@ -2,25 +2,21 @@ package net.auoeke.sp.source;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 import java.util.stream.Stream;
 import net.auoeke.sp.StructuredProperties;
 import net.auoeke.sp.source.lexeme.BooleanLexeme;
 import net.auoeke.sp.source.lexeme.CharacterLexeme;
-import net.auoeke.sp.source.lexeme.CommentLexeme;
+import net.auoeke.sp.source.lexeme.LineCommentLexeme;
 import net.auoeke.sp.source.lexeme.EscapedLexeme;
 import net.auoeke.sp.source.lexeme.FloatLexeme;
 import net.auoeke.sp.source.lexeme.IntegerLexeme;
 import net.auoeke.sp.source.lexeme.Lexeme;
 import net.auoeke.sp.source.lexeme.NullLexeme;
 import net.auoeke.sp.source.lexeme.Position;
-import net.auoeke.sp.source.lexeme.StringDelimiterLexeme;
+import net.auoeke.sp.source.lexeme.DelimiterLexeme;
 import net.auoeke.sp.source.lexeme.StringLexeme;
-import net.auoeke.sp.source.lexeme.Token;
 import net.auoeke.sp.source.lexeme.WhitespaceLexeme;
 
 public class Lexer {
@@ -30,28 +26,74 @@ public class Lexer {
 	private static final String BLOCK_COMMENT_END = "*/";
 	private static final String RAW_STRING_TERMINATORS = "\n,={}[]";
 
-	private final String source;
+	final CharSequence source;
+
 	private final boolean retainWhitespace;
 	private final boolean retainComments;
 
 	private int nextIndex;
 	private int line;
 	private int column = -1;
-	private Position savedPosition = new Position(-1, -1, -1);
 	private char current;
 	private Lexeme first;
 	private Lexeme last;
 
-	public Lexer(String source, StructuredProperties.Option... options) {
+	public Lexer(CharSequence source, StructuredProperties.Option... options) {
 		this.source = source;
 
-		var optionSet = EnumSet.copyOf(List.of(options));
-		this.retainWhitespace = optionSet.contains(StructuredProperties.Option.RETAIN_WHITESPACE);
-		this.retainComments = optionSet.contains(StructuredProperties.Option.RETAIN_COMMENTS);
+		var optionList = List.of(options);
+		this.retainWhitespace = !optionList.contains(StructuredProperties.Option.SKIP_WHITESPACE);
+		this.retainComments = !optionList.contains(StructuredProperties.Option.SKIP_COMMENTS);
+	}
 
-		while (this.advance()) {
-			this.process();
+	public static LexResult lex(String location, CharSequence source, StructuredProperties.Option... options) {
+		var lexer = new Lexer(source, options);
+		while (lexer.advance()) {}
+
+		return new LexResult(location, source, lexer.first, lexer.last);
+	}
+
+	public static LexResult lex(CharSequence source, StructuredProperties.Option... options) {
+		return lex(null, source, options);
+	}
+
+	public boolean advance() {
+		if (this.tryNext()) {
+			switch (this.current) {
+				case '\n' -> this.add(new CharacterLexeme(this.position(), Node.Type.NEWLINE));
+				case ',' -> this.add(new CharacterLexeme(this.position(), Node.Type.COMMA));
+				case '=' -> this.add(new CharacterLexeme(this.position(), Node.Type.EQUALS));
+				default -> {
+					if (Character.isWhitespace(this.current)) {
+						this.whitespace();
+					} else if (this.match(0, LINE_COMMENT)) {
+						this.lineComment();
+					} else if (this.match(0, BLOCK_COMMENT)) {
+						this.blockComment();
+					} else {
+						if (contains("{[", this.current)) {
+							this.structure();
+						} else if (contains("}]", this.current)) {
+							this.structureDelimiter();
+						} else if (contains(STRING_DELIMITERS, this.current)) {
+							this.string();
+						} else {
+							this.rawString();
+							return true;
+						}
+
+						if (this.hasNext() && !this.peek('\n') && Character.isWhitespace(this.peek())) {
+							this.next();
+							this.whitespace();
+						}
+					}
+				}
+			}
+
+			return true;
 		}
+
+		return false;
 	}
 
 	public Lexeme first() {
@@ -68,6 +110,10 @@ public class Lexer {
 
 	private Position position() {
 		return new Position(this.previousIndex(), this.line, this.column);
+	}
+
+	private Position nextPosition() {
+		return new Position(this.nextIndex, this.line, this.column);
 	}
 
 	private int previousIndex() {
@@ -88,8 +134,8 @@ public class Lexer {
 		return this.current = this.source.charAt(this.nextIndex++);
 	}
 
-	private boolean advance() {
-		if (this.nextIndex < this.source.length()) {
+	private boolean tryNext() {
+		if (this.hasNext()) {
 			this.next();
 			return true;
 		}
@@ -102,64 +148,24 @@ public class Lexer {
 	}
 
 	private boolean match(int lookahead, String expected) {
-		return this.source.regionMatches(this.previousIndex() + lookahead, expected, 0, expected.length());
-	}
+		var offset = this.previousIndex() + lookahead;
+		var length = expected.length();
 
-	private boolean peek(char expected) {
-		return this.hasNext() && this.source.charAt(this.nextIndex) == expected;
-	}
+		if (offset + length > this.source.length()) {
+			return false;
+		}
 
-	private void savePosition() {
-		this.savedPosition = this.position();
-	}
-
-	private boolean whitespaceOrComment() {
-		if (this.current == '\n') {
-			this.add(new CharacterLexeme(this.position(), Token.NEWLINE));
-		} else if (Character.isWhitespace(this.current)) {
-			this.whitespace();
-		} else {
-			return this.comment();
+		for (var index = 0; index < length; index++) {
+			if (this.source.charAt(offset + index) != expected.charAt(index)) {
+				return false;
+			}
 		}
 
 		return true;
 	}
 
-	private boolean comma() {
-		if (this.current == ',') {
-			this.add(new CharacterLexeme(this.position(), Token.COMMA));
-			return true;
-		}
-
-		return false;
-	}
-
-	private boolean mapping() {
-		if (this.current == '=') {
-			this.add(new CharacterLexeme(this.position(), Token.MAPPING));
-			return true;
-		}
-
-		return false;
-	}
-
-	private void process() {
-		if (!this.whitespaceOrComment() && !this.comma() && !this.mapping()) {
-			this.savePosition();
-
-			if (contains("{}[]", this.current)) {
-				this.structure();
-			} else if (contains(STRING_DELIMITERS, this.current)) {
-				this.string();
-			} else {
-				this.rawString();
-			}
-
-			if (this.hasNext() && !this.peek('\n') && Character.isWhitespace(this.peek())) {
-				this.next();
-				this.whitespace();
-			}
-		}
+	private boolean peek(char expected) {
+		return this.hasNext() && this.source.charAt(this.nextIndex) == expected;
 	}
 
 	private void add(Lexeme lexeme) {
@@ -171,83 +177,48 @@ public class Lexer {
 		}
 	}
 
-	private void whitespace() {
-		this.add(new WhitespaceLexeme(this.position(), buildString(builder -> {
-			builder.append(this.current);
-
-			while (this.hasNext()) {
-				if (!Character.isWhitespace(this.peek()) || this.peek('\n')) {
-					return;
-				}
-
-				builder.append(this.next());
-			}
-		})));
+	private void addString(Node.Type type, Position start, int end) {
+		if (end != start.index()) {
+			this.add(new StringLexeme(start, type, this.source.subSequence(start.index(), end)));
+		}
 	}
 
-	private boolean comment() {
-		if (this.match(0, BLOCK_COMMENT)) {
-			this.add(new CommentLexeme(this.position(), Token.BLOCK_COMMENT, buildString(builder -> {
-				this.next();
-				var depth = 1;
+	private void whitespace() {
+		var position = this.position();
 
-				while (this.advance()) {
-					if (this.match(0, BLOCK_COMMENT)) {
-						this.next();
-						++depth;
-						builder.append(BLOCK_COMMENT);
-					} else if (this.match(0, BLOCK_COMMENT_END)) {
-						this.next();
-
-						if (--depth == 0) {
-							return;
-						}
-
-						builder.append(BLOCK_COMMENT_END);
-					} else {
-						builder.append(this.current);
-					}
-				}
-			})));
-		} else if (this.match(0, LINE_COMMENT)) {
-			this.add(new CommentLexeme(this.position(), Token.LINE_COMMENT, buildString(builder -> {
-				this.next();
-
-				while (this.hasNext()) {
-					if (this.peek('\n')) {
-						return;
-					}
-
-					builder.append(this.next());
-				}
-			})));
-		} else {
-			return false;
+		while (this.hasNext() && Character.isWhitespace(this.peek()) && !this.peek('\n')) {
+			this.next();
 		}
 
-		return true;
+		this.add(new WhitespaceLexeme(position, this.source.subSequence(position.index(), this.nextIndex)));
+	}
+
+	private void lineComment() {
+		var position = this.position();
+		this.next();
+
+		while (this.hasNext() && !this.peek('\n')) {
+			this.next();
+		}
+
+		this.add(new LineCommentLexeme(position, this.source.subSequence(position.index() + 2, this.nextIndex)));
+	}
+
+	private void structureDelimiter() {
+		this.add(new CharacterLexeme(this.position(), Node.Type.delimiter(this.current)));
 	}
 
 	private void structure() {
-		var token = Token.delimiter(this.current);
-		this.add(new CharacterLexeme(this.position(), token));
+		var type = Node.Type.delimiter(this.current);
+		this.add(new CharacterLexeme(this.position(), type));
 
-		if (!token.end()) {
-			var end = switch (token) {
-				case ARRAY_BEGIN -> Token.ARRAY_END;
-				case MAP_BEGIN -> Token.MAP_END;
-				default -> throw null;
-			};
+		var end = switch (type) {
+			case LBRACKET -> Node.Type.RBRACKET.character();
+			case LBRACE -> Node.Type.RBRACE.character();
+			default -> throw null;
+		};
 
-			while (this.advance()) {
-				if (this.current == end.character()) {
-					this.structure();
-					return;
-				}
-
-				this.process();
-			}
-		}
+		while (this.advance() && this.current != end) {}
 	}
 
 	private int delimiterLength(char delimiter) {
@@ -261,124 +232,129 @@ public class Lexer {
 		return length;
 	}
 
+	private Position escaped(Node.Type type, Position start) {
+		if (this.current == '\\') {
+			var position = this.position();
+
+			if (this.tryNext()) {
+				this.addString(type, start, position.index());
+				this.add(new EscapedLexeme(position, this.current));
+
+				return this.nextPosition();
+			}
+
+			this.addString(type, start, this.nextIndex);
+			return null;
+		}
+
+		return start;
+	}
+
+	private void blockComment() {
+		this.add(new DelimiterLexeme(this.position(), Node.Type.BLOCK_COMMENT_START, BLOCK_COMMENT));
+		this.next();
+
+		var start = this.nextPosition();
+		var depth = 1;
+
+		while (this.tryNext() && start != null) {
+			if (this.match(0, BLOCK_COMMENT)) {
+				++depth;
+				this.next();
+			} else if (this.match(0, BLOCK_COMMENT_END)) {
+				var position = this.position();
+				this.next();
+
+				if (--depth == 0) {
+					this.addString(Node.Type.BLOCK_COMMENT_STRING, start, position.index());
+					this.add(new DelimiterLexeme(position, Node.Type.BLOCK_COMMENT_END, BLOCK_COMMENT_END));
+
+					return;
+				}
+			} else {
+				start = this.escaped(Node.Type.BLOCK_COMMENT_STRING, start);
+			}
+		}
+
+		this.addString(Node.Type.BLOCK_COMMENT_STRING, start, this.nextIndex);
+	}
+
 	private void string() {
+		var start = this.position();
 		var delimiter = this.current;
 		var length = this.delimiterLength(delimiter);
 
 		if (length == 2) {
-			this.add(new StringDelimiterLexeme(this.savedPosition, String.valueOf(delimiter)));
-			this.add(new StringLexeme(this.position(), ""));
-			this.add(new StringDelimiterLexeme(this.position(), String.valueOf(delimiter)));
+			var delimiterString = String.valueOf(delimiter);
+			this.add(new DelimiterLexeme(start, Node.Type.STRING_DELIMITER, delimiterString));
+			this.add(new DelimiterLexeme(this.position(), Node.Type.STRING_DELIMITER, delimiterString));
 		} else {
-			this.add(new StringDelimiterLexeme(this.savedPosition, String.valueOf(delimiter).repeat(length)));
+			this.add(new DelimiterLexeme(start, Node.Type.STRING_DELIMITER, String.valueOf(delimiter).repeat(length)));
+			start = this.nextPosition();
 
-			this.savePosition();
-			var builder = new StringBuilder();
-			Runnable flush = () -> {
-				if (!builder.isEmpty()) {
-					this.add(new StringLexeme(this.savedPosition, builder.toString()));
-				}
-			};
-
-			while (this.advance()) {
-				if (builder.isEmpty()) {
-					this.savePosition();
-				}
-
+			while (this.tryNext() && start != null) {
 				if (this.current == delimiter) {
 					var position = this.position();
 					var count = 1;
 
 					while (this.peek(delimiter) && count < length) {
-						this.next();
 						++count;
+						this.next();
 					}
 
 					if (count == length) {
-						flush.run();
-						this.add(new StringDelimiterLexeme(position, String.valueOf(delimiter).repeat(length)));
-
-						return;
-					}
-
-					builder.append(this.source, this.previousIndex() - count, this.nextIndex);
-				} else if (this.current == '\\') {
-					var position = this.position();
-
-					if (this.advance()) {
-						flush.run();
-						builder = new StringBuilder();
-						this.add(new EscapedLexeme(position, this.current));
-					} else {
-						builder.append(this.current);
-						flush.run();
+						this.addString(Node.Type.STRING, start, position.index());
+						this.add(new DelimiterLexeme(position, Node.Type.STRING_DELIMITER, String.valueOf(delimiter).repeat(length)));
 
 						return;
 					}
 				} else {
-					builder.append(this.current);
+					start = this.escaped(Node.Type.STRING, start);
 				}
 			}
 
-			flush.run();
+			this.addString(Node.Type.STRING, start, this.nextIndex);
 		}
 	}
 
 	private void rawString() {
-		var character = this.current;
-		var additionalWhitespace = new ArrayList<Lexeme>();
+		var start = this.position();
+		Position whitespace = null;
 
-		var string = buildString(builder -> {
-			builder.append(character);
-			Position whitespace = null;
+		while (this.hasNext() && !contains(RAW_STRING_TERMINATORS, this.peek()) && !this.match(1, LINE_COMMENT) && !this.match(1, BLOCK_COMMENT)) {
+			this.next();
 
-			while (this.hasNext()) {
-				if (contains(RAW_STRING_TERMINATORS, this.peek()) || this.match(1, LINE_COMMENT) || this.match(1, BLOCK_COMMENT)) {
-					if (whitespace != null) {
-						additionalWhitespace.add(new WhitespaceLexeme(whitespace, this.source.substring(whitespace.index(), this.nextIndex)));
-					}
-
-					return;
+			if (Character.isWhitespace(this.current)) {
+				if (whitespace == null) {
+					whitespace = this.position();
 				}
-
-				this.next();
-
-				if (Character.isWhitespace(this.current)) {
-					if (whitespace == null) {
-						whitespace = this.position();
-					}
-				} else if (whitespace == null) {
-					builder.append(this.current);
-				} else {
-					builder.append(this.source, whitespace.index(), this.nextIndex);
-					whitespace = null;
-				}
+			} else {
+				whitespace = null;
 			}
-		});
+		}
+
+		var string = this.source.subSequence(start.index(), whitespace == null ? this.nextIndex : whitespace.index()).toString();
 
 		this.add(switch (string) {
-			case "false" -> new BooleanLexeme(this.savedPosition, false);
-			case "true" -> new BooleanLexeme(this.savedPosition, true);
-			case "null" -> new NullLexeme(this.savedPosition);
+			case "false" -> new BooleanLexeme(start, false);
+			case "true" -> new BooleanLexeme(start, true);
+			case "null" -> new NullLexeme(start);
 			default -> {
 				try {
-					yield new IntegerLexeme(this.savedPosition, string, new BigInteger(string));
+					yield new IntegerLexeme(start, string, new BigInteger(string));
 				} catch (NumberFormatException exception) {
 					try {
-						yield new FloatLexeme(this.savedPosition, string, new BigDecimal(string));
+						yield new FloatLexeme(start, string, new BigDecimal(string));
 					} catch (NumberFormatException e) {
-						yield new StringLexeme(this.savedPosition, string);
+						yield new StringLexeme(start, Node.Type.STRING, string);
 					}
 				}
 			}
 		});
-		additionalWhitespace.forEach(this::add);
-	}
 
-	private static String buildString(Consumer<StringBuilder> builder) {
-		var b = new StringBuilder();
-		builder.accept(b);
-		return b.toString();
+		if (whitespace != null) {
+			this.add(new WhitespaceLexeme(whitespace, this.source.subSequence(whitespace.index(), this.nextIndex)));
+		}
 	}
 
 	private static boolean contains(String string, int character) {

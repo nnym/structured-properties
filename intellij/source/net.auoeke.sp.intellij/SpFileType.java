@@ -10,8 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class SpFileType extends LanguageFileType {
 	public static final Language language = new Language("Structured Properties") {};
+	public static final SpFileType instance = new SpFileType();
+	public static final Icon icon = IconLoader.getIcon("META-INF/fileTypeIcon.png", SpFileType.class);
 
-	public SpFileType() {
+	private SpFileType() {
 		super(language);
 	}
 
@@ -19,6 +21,7 @@ public class SpFileType extends LanguageFileType {
 		return "Structured Properties";
 	}
 
+	@SuppressWarnings("DialogTitleCapitalization")
 	@Override public @Label @NotNull String getDescription() {
 		return this.getName();
 	}
@@ -28,6 +31,6 @@ public class SpFileType extends LanguageFileType {
 	}
 
 	@Override public Icon getIcon() {
-		return IconLoader.getIcon("META-INF/fileTypeIcon.png", this.getClass());
+		return icon;
 	}
 }

@@ -12,8 +12,8 @@ public final class EscapedLexeme extends Lexeme {
 		this.character = character;
 	}
 
-	@Override public Token token() {
-		return Token.ESCAPE;
+	@Override public Type type() {
+		return Type.ESCAPE;
 	}
 
 	@Override public void accept(NodeVisitor visitor) {
@@ -29,7 +29,11 @@ public final class EscapedLexeme extends Lexeme {
 	}
 
 	@Override public String stringValue() {
-		return String.valueOf(this.character);
+		return switch (this.character) {
+			case 'n' -> String.valueOf('\n');
+			case 't' -> String.valueOf('\t');
+			default -> String.valueOf(this.character);
+		};
 	}
 
 	@Override public String toString() {

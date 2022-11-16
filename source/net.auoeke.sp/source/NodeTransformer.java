@@ -2,16 +2,17 @@ package net.auoeke.sp.source;
 
 import net.auoeke.sp.source.lexeme.BooleanLexeme;
 import net.auoeke.sp.source.lexeme.CharacterLexeme;
-import net.auoeke.sp.source.lexeme.CommentLexeme;
+import net.auoeke.sp.source.lexeme.DelimiterLexeme;
 import net.auoeke.sp.source.lexeme.EscapedLexeme;
 import net.auoeke.sp.source.lexeme.FloatLexeme;
 import net.auoeke.sp.source.lexeme.IntegerLexeme;
 import net.auoeke.sp.source.lexeme.Lexeme;
+import net.auoeke.sp.source.lexeme.LineCommentLexeme;
 import net.auoeke.sp.source.lexeme.NullLexeme;
-import net.auoeke.sp.source.lexeme.StringDelimiterLexeme;
 import net.auoeke.sp.source.lexeme.StringLexeme;
 import net.auoeke.sp.source.lexeme.WhitespaceLexeme;
 import net.auoeke.sp.source.tree.ArrayTree;
+import net.auoeke.sp.source.tree.BlockCommentTree;
 import net.auoeke.sp.source.tree.MapTree;
 import net.auoeke.sp.source.tree.PairTree;
 import net.auoeke.sp.source.tree.SourceUnit;
@@ -47,6 +48,10 @@ public interface NodeTransformer<T> {
 		return this.transformTree(node);
 	}
 
+	default T transform(BlockCommentTree node) {
+		return this.transformTree(node);
+	}
+
 	default T transform(NullLexeme node) {
 		return this.transformLexeme(node);
 	}
@@ -67,7 +72,7 @@ public interface NodeTransformer<T> {
 		return this.transformLexeme(node);
 	}
 
-	default T transform(StringDelimiterLexeme node) {
+	default T transform(DelimiterLexeme node) {
 		return this.transformLexeme(node);
 	}
 
@@ -75,7 +80,7 @@ public interface NodeTransformer<T> {
 		return this.transformLexeme(node);
 	}
 
-	default T transform(CommentLexeme node) {
+	default T transform(LineCommentLexeme node) {
 		return this.transformLexeme(node);
 	}
 

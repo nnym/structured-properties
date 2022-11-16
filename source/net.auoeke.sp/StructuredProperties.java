@@ -350,8 +350,8 @@ public class StructuredProperties {
 	}
 
 	public enum Option {
-		RETAIN_WHITESPACE,
-		RETAIN_COMMENTS
+		SKIP_COMMENTS,
+		SKIP_WHITESPACE
 	}
 
 	private record AdapterKey(Class<?> type, Class<?> spType) {}

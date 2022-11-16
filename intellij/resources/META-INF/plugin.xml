@@ -17,5 +17,10 @@
     <extensions defaultExtensionNs="com.intellij">
         <fileType extensions="str" name="Structured Properties" language="Structured Properties" implementationClass="net.auoeke.sp.intellij.SpFileType"/>
         <lang.syntaxHighlighterFactory language="Structured Properties" implementationClass="net.auoeke.sp.intellij.SpHighlighter$Factory"/>
+        <lang.parserDefinition language="Structured Properties" implementationClass="net.auoeke.sp.intellij.SpParserDefinition"/>
+        <colorSettingsPage implementation="net.auoeke.sp.intellij.SpColorSettingsPage"/>
+        <lang.braceMatcher language="Structured Properties" implementationClass="net.auoeke.sp.intellij.SpPairedBraceMatcher"/>
+        <lang.commenter language="Structured Properties" implementationClass="net.auoeke.sp.intellij.SpCommenter"/>
+        <statementUpDownMover implementation="net.auoeke.sp.intellij.SpVerticalStatementMover"/>
     </extensions>
 </idea-plugin>

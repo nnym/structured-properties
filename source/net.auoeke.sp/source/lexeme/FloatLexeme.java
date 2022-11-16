@@ -15,8 +15,8 @@ public final class FloatLexeme extends Lexeme {
 		this.value = value;
 	}
 
-	@Override public Token token() {
-		return Token.FLOAT;
+	@Override public Type type() {
+		return Type.FLOAT;
 	}
 
 	@Override public boolean isPrimitive() {

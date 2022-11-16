@@ -3,17 +3,19 @@ package net.auoeke.sp.source.lexeme;
 import net.auoeke.sp.source.NodeTransformer;
 import net.auoeke.sp.source.NodeVisitor;
 
-public final class StringDelimiterLexeme extends Lexeme {
+public final class DelimiterLexeme extends Lexeme {
+	public Type type;
 	public String value;
 
-	public StringDelimiterLexeme(Position position, String value) {
+	public DelimiterLexeme(Position position, Type type, String value) {
 		super(position);
 
+		this.type = type;
 		this.value = value;
 	}
 
-	@Override public Token token() {
-		return Token.STRING_DELIMITER;
+	@Override public Type type() {
+		return this.type;
 	}
 
 	@Override public void accept(NodeVisitor visitor) {
@@ -24,8 +26,8 @@ public final class StringDelimiterLexeme extends Lexeme {
 		return transformer.transform(this);
 	}
 
-	@Override public StringDelimiterLexeme clone() {
-		return new StringDelimiterLexeme(this.position, this.value);
+	@Override public DelimiterLexeme clone() {
+		return new DelimiterLexeme(this.position, this.type, this.value);
 	}
 
 	@Override public String toString() {

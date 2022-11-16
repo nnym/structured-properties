@@ -21,9 +21,10 @@ public record ParseResult(SourceUnit tree, List<Error> errors) {
 	}
 
 	public String message() {
+		var source = this.tree.source.toString();
 		return this.errors.stream()
 			.sorted(Comparator.comparing(Error::offsetPosition))
-			.map(error -> error.help(this.tree.source, this.tree.location))
+			.map(error -> error.help(source, this.tree.location))
 			.collect(Collectors.joining("\n\n"));
 	}
 }

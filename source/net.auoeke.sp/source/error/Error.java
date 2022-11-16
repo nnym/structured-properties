@@ -13,15 +13,16 @@ public record Error(Node node, Offset offset, Key key, Object... arguments) {
 		return this.key.template.replace("%node", this.node).formatted(this.arguments);
 	}
 
-	public String help(String sp, String location) {
+	public String help(String source, String location) {
 		var position = this.offsetPosition();
+		var end = source.indexOf('\n', position.index());
 
 		return """
 			%s: %s
 			 %s
 			%s""".formatted(
 			location == null ? position : location + ':' + position, this.description(),
-			sp.substring(sp.lastIndexOf('\n', position.index()) + 1, (sp.indexOf('\n', position.index()) + sp.length() + 1) % (sp.length() + 1)),
+			source.substring(source.lastIndexOf('\n', position.index()) + 1, end >= 0 ? end : source.length()),
 			" ".repeat(position.column() + 1) + "^".repeat(this.offset == Offset.NONE ? this.node.length() : 1)
 		);
 	}
@@ -54,6 +55,7 @@ public record Error(Node node, Offset offset, Key key, Object... arguments) {
 		NO_SEPARATOR("Expected a separator."),
 		NO_VALUE("Key is not associated with a value."),
 		OPEN_ARRAY("Array is not closed."),
+		OPEN_BLOCK_COMMENT("Block comment is not closed."),
 		OPEN_MAP("Map is not closed."),
 		OPEN_STRING("String is not closed."),
 		PRIMITIVE_RIGHT_NO_MAPPING("Primitive right side of pair must be preceded by '='."),

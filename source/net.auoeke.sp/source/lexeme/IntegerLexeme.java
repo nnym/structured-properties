@@ -15,8 +15,8 @@ public final class IntegerLexeme extends Lexeme {
 		this.value = value;
 	}
 
-	@Override public Token token() {
-		return Token.INTEGER;
+	@Override public Type type() {
+		return Type.INTEGER;
 	}
 
 	@Override public boolean isPrimitive() {

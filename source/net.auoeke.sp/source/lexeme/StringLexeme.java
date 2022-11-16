@@ -4,20 +4,18 @@ import net.auoeke.sp.source.NodeTransformer;
 import net.auoeke.sp.source.NodeVisitor;
 
 public final class StringLexeme extends Lexeme {
-	public String value;
+	public Type type;
+	public CharSequence value;
 
-	public StringLexeme(Position position, String value) {
+	public StringLexeme(Position position, Type type, CharSequence value) {
 		super(position);
 
+		this.type = type;
 		this.value = value;
 	}
 
-	@Override public Token token() {
-		return Token.STRING;
-	}
-
-	@Override public boolean isPrimitive() {
-		return true;
+	@Override public Type type() {
+		return this.type;
 	}
 
 	@Override public void accept(NodeVisitor visitor) {
@@ -29,22 +27,26 @@ public final class StringLexeme extends Lexeme {
 	}
 
 	@Override public StringLexeme clone() {
-		return new StringLexeme(this.position, this.value);
+		return new StringLexeme(this.position, this.type, this.value);
 	}
 
 	@Override public boolean isValue() {
 		return true;
 	}
 
+	@Override public boolean isPrimitive() {
+		return this.is(Type.STRING);
+	}
+
 	@Override public String toString() {
-		return this.value;
+		return this.value.toString();
 	}
 
 	@Override public int hashCode() {
-		return this.value.hashCode();
+		return this.type.hashCode() ^ this.value.hashCode();
 	}
 
 	@Override public boolean equals(Object object) {
-		return object instanceof StringLexeme string && this.value.equals(string.value);
+		return this == object || object instanceof StringLexeme string && this.value.equals(string.value);
 	}
 }

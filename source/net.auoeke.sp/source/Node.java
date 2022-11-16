@@ -21,6 +21,64 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 
 	@Override public abstract String toString();
 
+	public abstract Type type();
+
+	public abstract Stream<Node> stream();
+
+	public abstract Stream<Node> family();
+
+	public abstract Stream<Node> deepStream();
+
+	public abstract Stream<Node> deepFamily();
+
+	public final boolean is(Type type) {
+		return type == this.type();
+	}
+
+	public boolean isNewline() {
+		return this.is(Type.NEWLINE);
+	}
+
+	public boolean isWhitespace() {
+		return this.is(Type.WHITESPACE) || this.is(Type.NEWLINE);
+	}
+
+	public boolean isStrictlyWhitespace() {
+		return this.is(Type.WHITESPACE);
+	}
+
+	public boolean isComment() {
+		return this.is(Type.LINE_COMMENT) || this.is(Type.BLOCK_COMMENT_START) || this.is(Type.BLOCK_COMMENT_END) || this.is(Type.BLOCK_COMMENT);
+	}
+
+	public boolean isSemantic() {
+		return !this.isStrictlyWhitespace() && !this.isComment();
+	}
+
+	public boolean isSemanticVisible() {
+		return !this.isWhitespace() && !this.isComment();
+	}
+
+	public boolean isMapping() {
+		return this.is(Type.EQUALS);
+	}
+
+	public boolean isComma() {
+		return this.is(Type.COMMA);
+	}
+
+	public boolean isStringDelimiter() {
+		return this.is(Type.STRING_DELIMITER);
+	}
+
+	public boolean isBlockCommentStart() {
+		return this.is(Type.BLOCK_COMMENT_START);
+	}
+
+	public boolean isBlockCommentEnd() {
+		return this.is(Type.BLOCK_COMMENT_END);
+	}
+
 	public Tree parent() {
 		return this.parent;
 	}
@@ -31,6 +89,14 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 
 	public Node next() {
 		return this.next;
+	}
+
+	public boolean hasPrevious() {
+		return this.previous != null;
+	}
+
+	public boolean hasNext() {
+		return this.next != null;
 	}
 
 	public Node previous(int distance) {
@@ -66,7 +132,7 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 	}
 
 	public int index() {
-		return (int) Stream.iterate(this.previous, Objects::nonNull, Node::previous).count();
+		return (int) this.iterateStrictlyPrevious().count();
 	}
 
 	public void parent(Tree parent) {
@@ -141,12 +207,8 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 	}
 
 	public void remove() {
-		if (this.previous != null) this.previous.next(this.next);
-		if (this.next != null) this.next.previous(this.previous);
-
-		this.parent(null);
-		this.previous(null);
-		this.next(null);
+		this.parent = null;
+		this.link(null, null);
 	}
 
 	public Node cloneRoot() {
@@ -188,5 +250,78 @@ public abstract sealed class Node implements CharSequence permits Lexeme, Tree {
 
 	@Override public CharSequence subSequence(int start, int end) {
 		return this.toString().substring(start, end);
+	}
+
+	public enum Type {
+		NEWLINE('\n'),
+		WHITESPACE,
+		LINE_COMMENT,
+		BLOCK_COMMENT,
+		BLOCK_COMMENT_STRING,
+		BLOCK_COMMENT_START,
+		BLOCK_COMMENT_END,
+		STRING,
+		STRING_DELIMITER,
+		BOOLEAN,
+		INTEGER,
+		FLOAT,
+		NULL,
+		ESCAPE,
+		COMMA(','),
+		EQUALS('='),
+		LBRACKET('['),
+		RBRACKET(']'),
+		LBRACE('{'),
+		RBRACE('}'),
+		STRING_TREE,
+		PAIR,
+		ARRAY,
+		MAP,
+		FILE,
+		ERROR;
+
+		private final char character;
+
+		Type(char character) {
+			this.character = character;
+		}
+
+		Type() {
+			this(Character.MAX_VALUE);
+		}
+
+		public static Type delimiter(char character) {
+			return switch (character) {
+				case '[' -> LBRACKET;
+				case ']' -> RBRACKET;
+				case '{' -> LBRACE;
+				case '}' -> RBRACE;
+				default -> throw new IllegalArgumentException(String.valueOf(character));
+			};
+		}
+
+		public char character() {
+			if (this.character == Character.MAX_VALUE) {
+				throw new UnsupportedOperationException();
+			}
+
+			return this.character;
+		}
+
+		public boolean newline() {
+			return this == NEWLINE;
+		}
+
+		public boolean begin() {
+			return this == LBRACKET || this == LBRACE;
+		}
+
+		public boolean end() {
+			return this == RBRACKET || this == RBRACE;
+		}
+
+		public boolean separator() {
+			return this == COMMA || this == NEWLINE;
+		}
 	}
 }

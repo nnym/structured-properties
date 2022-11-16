@@ -26,6 +26,10 @@ public final class PairTree extends Tree {
 		return transformer.transform(this);
 	}
 
+	@Override public Type type() {
+		return Type.PAIR;
+	}
+
 	@Override public boolean isValue() {
 		return true;
 	}

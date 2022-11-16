@@ -1,6 +1,6 @@
 plugins {
 	id("org.jetbrains.intellij").version("latest.release")
-	id("net.auoeke.gronk").version("latest.release")
+	id("net.auoeke.gronk")
 }
 
 version("0.0.0")
@@ -26,6 +26,11 @@ intellij {
 
 configure([instrumentCode, buildSearchableOptions, jarSearchableOptions]) {
 	enabled = false
+}
+
+clean {
+	// Don't delete build/idea-sandbox.
+	delete = ["classes", "libs", "patchedPluginXmlFiles", "resources"].collect {file("build/$it")}
 }
 
 jar {

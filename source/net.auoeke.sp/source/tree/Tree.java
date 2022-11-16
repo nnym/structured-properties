@@ -2,6 +2,7 @@ package net.auoeke.sp.source.tree;
 
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import net.auoeke.sp.source.Node;
@@ -10,7 +11,7 @@ import net.auoeke.sp.source.lexeme.Position;
 /**
  A nonterminal.
  */
-public abstract sealed class Tree extends Node implements Iterable<Node> permits ArrayTree, MapTree, PairTree, SourceUnit, StringTree {
+public abstract sealed class Tree extends Node implements Iterable<Node> permits ArrayTree, DelimitedTree, MapTree, PairTree, SourceUnit {
 	public Node first;
 	public Node last;
 
@@ -22,6 +23,26 @@ public abstract sealed class Tree extends Node implements Iterable<Node> permits
 
 	public Node last() {
 		return this.last;
+	}
+
+	public Node deepFirst() {
+		var first = this.first;
+
+		while (first instanceof Tree tree) {
+			first = tree.first;
+		}
+
+		return first;
+	}
+
+	public Node deepLast() {
+		var last = this.last;
+
+		while (last instanceof Tree tree) {
+			last = tree.last;
+		}
+
+		return last;
 	}
 
 	public void first(Node first) {
@@ -96,12 +117,28 @@ public abstract sealed class Tree extends Node implements Iterable<Node> permits
 		node.remove();
 	}
 
-	public Stream<Node> stream() {
+	@Override public Stream<Node> stream() {
 		return Stream.iterate(this.first, Objects::nonNull, Node::next);
+	}
+
+	@Override public Stream<Node> family() {
+		return Stream.concat(Stream.of(this), this.stream());
+	}
+
+	@Override public Stream<Node> deepStream() {
+		return this.stream().flatMap(Node::deepFamily);
+	}
+
+	@Override public Stream<Node> deepFamily() {
+		return Stream.concat(Stream.of(this), this.deepStream());
 	}
 
 	@Override public Iterator<Node> iterator() {
 		return this.stream().iterator();
+	}
+
+	@Override public void forEach(Consumer<? super Node> action) {
+		this.stream().forEach(action);
 	}
 
 	@Override public Position start() {

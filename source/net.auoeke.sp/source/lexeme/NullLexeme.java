@@ -24,8 +24,8 @@ public final class NullLexeme extends Lexeme {
 		return true;
 	}
 
-	@Override public Token token() {
-		return Token.NULL;
+	@Override public Type type() {
+		return Type.NULL;
 	}
 
 	@Override public boolean isPrimitive() {

@@ -1,60 +1,35 @@
 package net.auoeke.sp.source.lexeme;
 
+import java.util.stream.Stream;
 import net.auoeke.sp.source.Node;
 
 /**
  A terminal symbol.
  */
-public abstract sealed class Lexeme extends Node permits BooleanLexeme, CharacterLexeme, CommentLexeme, EscapedLexeme, FloatLexeme, IntegerLexeme, NullLexeme, StringDelimiterLexeme, StringLexeme, WhitespaceLexeme {
+public abstract sealed class Lexeme extends Node permits BooleanLexeme, CharacterLexeme, DelimiterLexeme, EscapedLexeme, FloatLexeme, IntegerLexeme, LineCommentLexeme, NullLexeme, StringLexeme, WhitespaceLexeme {
 	public final Position position;
 
 	public Lexeme(Position position) {
 		this.position = position;
 	}
 
-	public abstract Token token();
-
-	public final boolean is(Token token) {
-		return token == this.token();
-	}
-
-	public boolean isNewline() {
-		return this.is(Token.NEWLINE);
-	}
-
-	public boolean isWhitespace() {
-		return this.is(Token.WHITESPACE) || this.is(Token.NEWLINE);
-	}
-
-	public boolean isStrictlyWhitespace() {
-		return this.is(Token.WHITESPACE);
-	}
-
-	public boolean isComment() {
-		return this.is(Token.LINE_COMMENT) || this.is(Token.BLOCK_COMMENT);
-	}
-
-	public boolean isSemantic() {
-		return !this.isStrictlyWhitespace() && !this.isComment();
-	}
-
-	public boolean isSemanticVisible() {
-		return !this.isWhitespace() && !this.isComment();
-	}
-
-	public boolean isMapping() {
-		return this.is(Token.MAPPING);
-	}
-
-	public boolean isComma() {
-		return this.is(Token.COMMA);
-	}
-
-	public boolean isStringDelimiter() {
-		return this.is(Token.STRING_DELIMITER);
-	}
-
 	@Override public Position start() {
 		return this.position;
+	}
+
+	@Override public Stream<Node> stream() {
+		return Stream.empty();
+	}
+
+	@Override public Stream<Node> family() {
+		return Stream.of(this);
+	}
+
+	@Override public Stream<Node> deepStream() {
+		return Stream.empty();
+	}
+
+	@Override public Stream<Node> deepFamily() {
+		return Stream.of(this);
 	}
 }

@@ -21,6 +21,10 @@ public final class ArrayTree extends Tree {
 		return transformer.transform(this);
 	}
 
+	@Override public Type type() {
+		return Type.ARRAY;
+	}
+
 	@Override public boolean isValue() {
 		return true;
 	}
