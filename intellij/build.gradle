@@ -30,7 +30,7 @@ configure([instrumentCode, buildSearchableOptions, jarSearchableOptions]) {
 
 clean {
 	// Don't delete build/idea-sandbox.
-	delete = ["classes", "libs", "patchedPluginXmlFiles", "resources"].collect {file("build/$it")}
+	delete = ["classes", "distributions", "libs", "patchedPluginXmlFiles", "resources"].collect {file("build/$it")}
 }
 
 jar {
