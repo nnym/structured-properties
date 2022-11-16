@@ -18,7 +18,8 @@ and possibly a leading or trailing radix point.
 - A **string** is either
   - a sequence of characters that are not reserved for other tokens that is terminated by a newline or comma or
     - <code>//# Quotation marks ("), apostrophes (') and backticks (`) are included. :^)</code>
-  - a sequence of characters delimited by `"`, `'`, <code>`</code> or a string of any number >= 3 thereof.
+  - a sequence of characters delimited by `"`, `'`, <code>\`</code> or a string of any number >= 3 thereof.
+  Delimiter characters in delimited strings can be escaped by a `/` prefix. Escaped `t`s and `n`s become tabs and newlines.
     - `"quoted string"`
     - `'apostrophed string'`
     - <code>\`backticked string\`</code>
@@ -79,7 +80,8 @@ autosave interval = 5
 - A **line comment** starts with `##` and lasts until the next line.
   - `time = 6:00 ## My alarm is set to ring at this time.`
 - A **block comment** starts with `/*`, is terminated by `*/` and can be nested.
+  Delimiter characters in block comments can be escaped by a `/` prefix. Escaped `t`s and `n`s become tabs and newlines.
   - ```
-    /* /* nest */
-    The comment continues. */
+    /* an example /* nested */
+    comment */
     ```
