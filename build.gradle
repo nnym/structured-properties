@@ -10,7 +10,14 @@ description("Properties with structure and types")
 javaVersion(17)
 
 allprojects {
+	plugins.apply("java")
 	group("net.auoeke")
+
+	jar {
+		from(rootProject.file("LICENSE.md")) {
+			into("META-INF")
+		}
+	}
 }
 
 gronk {
