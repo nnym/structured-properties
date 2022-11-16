@@ -6,8 +6,8 @@
     <idea-version since-build="223.7255.1"/>
     <description>
         <![CDATA[
-        Syntax highlighting and formatting for <a href="https://github.com/auoeke/structured-properties">Structured Properties</a>.
-</pre>]]>
+        Syntax and error highlighting for <a href="https://github.com/auoeke/structured-properties">Structured Properties</a>.
+]]>
     </description>
     <change-notes>
         <![CDATA[
