@@ -14,7 +14,7 @@ allprojects {
 	group("net.auoeke")
 
 	jar {
-		from(rootProject.file("LICENSE.md")) {
+		from("LICENSE.md") {
 			into("META-INF")
 		}
 	}

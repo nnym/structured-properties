@@ -8,3 +8,5 @@ except to the extent that the contribution's content emphasizes otherwise (for e
 
 **The software is provided without any warranty including the implied warranties of merchantability, fitness for a particular purpose, title and noninfringement.**
 **In no event will any contributor or licensor be liable to you for any damages related to the software.**
+
+JetBrains' liability is excluded entirely for JetBrains is not a party to the contractual relationship between you and the copyright holder. 
